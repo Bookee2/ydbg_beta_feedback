@@ -57,20 +57,43 @@ form.addEventListener('submit', async (e) => {
         // Handle file uploads
         const files = formData.getAll('screenshots');
         const fileData = [];
+        const uploadedFiles = [];
         
         for (const file of files) {
             if (file.size > 0) {
-                const base64 = await fileToBase64(file);
-                fileData.push({
-                    name: file.name,
-                    type: file.type,
-                    size: file.size,
-                    data: base64
-                });
+                try {
+                    // Upload file to 0x0.st (free file hosting)
+                    const uploadUrl = await uploadFileToHost(file);
+                    uploadedFiles.push({
+                        name: file.name,
+                        size: file.size,
+                        url: uploadUrl
+                    });
+                    
+                    // Also keep base64 for backup
+                    const base64 = await fileToBase64(file);
+                    fileData.push({
+                        name: file.name,
+                        type: file.type,
+                        size: file.size,
+                        data: base64
+                    });
+                } catch (error) {
+                    console.warn('Could not upload file:', file.name, error);
+                    // Fallback to base64 only
+                    const base64 = await fileToBase64(file);
+                    fileData.push({
+                        name: file.name,
+                        type: file.type,
+                        size: file.size,
+                        data: base64
+                    });
+                }
             }
         }
         
         feedbackData.files = fileData;
+        feedbackData.uploadedFiles = uploadedFiles;
         
         // Send to both Slack and Google Sheets
         const results = await Promise.allSettled([
@@ -127,6 +150,30 @@ function fileToBase64(file) {
         reader.onload = () => resolve(reader.result);
         reader.onerror = error => reject(error);
     });
+}
+
+// Upload file to 0x0.st (free file hosting service)
+async function uploadFileToHost(file) {
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    try {
+        const response = await fetch('https://0x0.st', {
+            method: 'POST',
+            body: formData
+        });
+        
+        if (response.ok) {
+            const url = await response.text();
+            console.log(`File uploaded successfully: ${url}`);
+            return url.trim();
+        } else {
+            throw new Error(`Upload failed with status: ${response.status}`);
+        }
+    } catch (error) {
+        console.error('File upload error:', error);
+        throw error;
+    }
 }
 
 // Send data to Google Sheets
@@ -272,24 +319,33 @@ async function sendToSlack(data) {
         };
         
            // Add file attachments if any
-           if (data.files && data.files.length > 0) {
+           if (data.uploadedFiles && data.uploadedFiles.length > 0) {
                slackMessage.blocks.push({
                    type: "section",
                    text: {
                        type: "mrkdwn",
-                       text: `*Screenshots:* ${data.files.length} file(s) attached`
+                       text: `*📎 Screenshots:* ${data.uploadedFiles.length} file(s) attached`
                    }
                });
                
-               // Add file details
-               data.files.forEach((file, index) => {
+               // Add file details with download links
+               data.uploadedFiles.forEach((file, index) => {
                    slackMessage.blocks.push({
                        type: "section",
                        text: {
                            type: "mrkdwn",
-                           text: `📎 *File ${index + 1}:* ${file.name} (${(file.size / 1024).toFixed(1)} KB)`
+                           text: `📎 *File ${index + 1}:* <${file.url}|${file.name}> (${(file.size / 1024).toFixed(1)} KB)`
                        }
                    });
+               });
+           } else if (data.files && data.files.length > 0) {
+               // Fallback if upload failed
+               slackMessage.blocks.push({
+                   type: "section",
+                   text: {
+                       type: "mrkdwn",
+                       text: `*📎 Screenshots:* ${data.files.length} file(s) attached (upload failed, files available in Google Sheets)`
+                   }
                });
            }
         
