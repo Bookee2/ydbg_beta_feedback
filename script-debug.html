@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Apps Script Debug</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background: #1e293b; color: #f8fafc; }
+        button { background: #dc2626; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin: 5px; }
+        .result { margin-top: 10px; padding: 10px; border-radius: 5px; }
+        .success { background: #059669; }
+        .error { background: #dc2626; }
+        .info { background: #3b82f6; }
+        .warning { background: #f59e0b; color: #000; }
+        .step { margin: 20px 0; padding: 15px; border: 1px solid #475569; border-radius: 8px; }
+    </style>
+</head>
+<body>
+    <h1>🔧 Google Apps Script Debug Tool</h1>
+    
+    <div class="step">
+        <h2>Step 1: Check Your Google Apps Script</h2>
+        <p>Make sure you've updated your Google Apps Script with the new code and redeployed it.</p>
+        <button onclick="testScriptAccess()">Test Script Access</button>
+        <div id="script-result" class="result"></div>
+    </div>
+    
+    <div class="step">
+        <h2>Step 2: Test with GET Request</h2>
+        <p>This tests if your script is accessible at all.</p>
+        <button onclick="testGetRequest()">Test GET Request</button>
+        <div id="get-result" class="result"></div>
+    </div>
+    
+    <div class="step">
+        <h2>Step 3: Test POST with Simple Data</h2>
+        <p>This tests if the script can receive and process data.</p>
+        <button onclick="testSimplePost()">Test Simple POST</button>
+        <div id="post-result" class="result"></div>
+    </div>
+    
+    <div class="step">
+        <h2>Step 4: Check Your Google Sheet</h2>
+        <p>Open your Google Sheet and check if:</p>
+        <ul>
+            <li>The sheet name is exactly "YDBG BetaFeedback"</li>
+            <li>You have edit permissions on the sheet</li>
+            <li>The sheet ID in the script matches your sheet</li>
+        </ul>
+        <button onclick="showSheetInfo()">Show Sheet Info</button>
+        <div id="sheet-info" class="result"></div>
+    </div>
+
+    <script src="config.js"></script>
+    <script>
+        function showResult(elementId, message, type) {
+            const element = document.getElementById(elementId);
+            element.innerHTML = message;
+            element.className = `result ${type}`;
+        }
+
+        async function testScriptAccess() {
+            showResult('script-result', 'Testing script access...', 'info');
+            
+            try {
+                const response = await fetch(window.SLACK_CONFIG.googleSheetsUrl, {
+                    method: 'GET',
+                    mode: 'no-cors'
+                });
+                
+                showResult('script-result', '✅ Script URL is accessible (no-cors mode)', 'success');
+            } catch (error) {
+                showResult('script-result', `❌ Script access failed: ${error.message}`, 'error');
+            }
+        }
+
+        async function testGetRequest() {
+            showResult('get-result', 'Testing GET request...', 'info');
+            
+            try {
+                // Try with regular mode first
+                const response = await fetch(window.SLACK_CONFIG.googleSheetsUrl);
+                const text = await response.text();
+                
+                if (text.includes('YDBG Feedback Collection API is running')) {
+                    showResult('get-result', '✅ GET request successful! Script is running.', 'success');
+                } else {
+                    showResult('get-result', `⚠️ GET request returned: ${text}`, 'warning');
+                }
+            } catch (error) {
+                showResult('get-result', `❌ GET request failed: ${error.message}`, 'error');
+            }
+        }
+
+        async function testSimplePost() {
+            showResult('post-result', 'Testing POST request...', 'info');
+            
+            try {
+                const testData = {
+                    name: 'Debug Test',
+                    os: 'iOS',
+                    feedbackType: 'Debug',
+                    details: 'Simple test data',
+                    userAgent: navigator.userAgent,
+                    timestamp: new Date().toISOString()
+                };
+                
+                const response = await fetch(window.SLACK_CONFIG.googleSheetsUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(testData)
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    if (result.success) {
+                        showResult('post-result', '✅ POST request successful! Check your Google Sheet.', 'success');
+                    } else {
+                        showResult('post-result', `❌ Script error: ${result.error}`, 'error');
+                    }
+                } else {
+                    showResult('post-result', `❌ HTTP error: ${response.status} ${response.statusText}`, 'error');
+                }
+            } catch (error) {
+                showResult('post-result', `❌ POST request failed: ${error.message}`, 'error');
+            }
+        }
+
+        function showSheetInfo() {
+            const info = `
+                <h3>Google Sheet Configuration:</h3>
+                <p><strong>Sheet ID:</strong> 19sspNrLcvU68k0BYurY5RjedZRE1iHMo-6ZIYNbBXIU</p>
+                <p><strong>Expected Sheet Name:</strong> "YDBG BetaFeedback"</p>
+                <p><strong>Script URL:</strong> ${window.SLACK_CONFIG.googleSheetsUrl}</p>
+                <br>
+                <h3>What to check:</h3>
+                <ul>
+                    <li>Open your Google Sheet</li>
+                    <li>Check the sheet name at the bottom (should be "YDBG BetaFeedback")</li>
+                    <li>Make sure you have edit permissions</li>
+                    <li>Check if the sheet ID in the URL matches: 19sspNrLcvU68k0BYurY5RjedZRE1iHMo-6ZIYNbBXIU</li>
+                </ul>
+            `;
+            showResult('sheet-info', info, 'info');
+        }
+
+        // Auto-run script access test
+        window.onload = function() {
+            testScriptAccess();
+        };
+    </script>
+</body>
+</html>

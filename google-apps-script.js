@@ -85,18 +85,52 @@ function doGet(e) {
 }
 
 /**
- * Test function to verify the setup
+ * Test function to verify the setup - run this in Google Apps Script
  */
 function testSetup() {
   try {
-    const sheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName(SHEET_NAME);
+    console.log('Testing Google Apps Script setup...');
+    
+    // Test 1: Check if we can access the spreadsheet
+    const spreadsheet = SpreadsheetApp.openById(SHEET_ID);
+    console.log('✅ Spreadsheet accessed successfully');
+    console.log('Spreadsheet name:', spreadsheet.getName());
+    
+    // Test 2: Check if the sheet exists
+    let sheet = spreadsheet.getSheetByName(SHEET_NAME);
     if (sheet) {
-      console.log('Sheet found:', sheet.getName());
+      console.log('✅ Sheet found:', sheet.getName());
       console.log('Last row:', sheet.getLastRow());
     } else {
-      console.log('Sheet not found, will be created on first submission');
+      console.log('⚠️ Sheet not found, will be created on first submission');
     }
+    
+    // Test 3: Try to add a test row
+    const testData = [
+      new Date().toLocaleString(),
+      'Test User',
+      'iOS',
+      'Test',
+      'This is a test row from Google Apps Script',
+      0,
+      'Google Apps Script Test'
+    ];
+    
+    if (!sheet) {
+      sheet = spreadsheet.insertSheet(SHEET_NAME);
+      sheet.getRange(1, 1, 1, 7).setValues([
+        ['Timestamp', 'Name', 'Operating System', 'Feedback Type', 'Details', 'Screenshots Count', 'User Agent']
+      ]);
+      sheet.getRange(1, 1, 1, 7).setFontWeight('bold');
+    }
+    
+    sheet.appendRow(testData);
+    console.log('✅ Test row added successfully');
+    
+    return 'All tests passed!';
+    
   } catch (error) {
-    console.error('Setup test failed:', error);
+    console.error('❌ Setup test failed:', error);
+    return 'Test failed: ' + error.toString();
   }
 }
