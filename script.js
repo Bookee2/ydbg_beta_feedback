@@ -1,12 +1,23 @@
 // Configuration - Load URLs from config
-const SLACK_WEBHOOK_URL = 'YOUR_SLACK_WEBHOOK_URL_HERE';
-const GOOGLE_SHEETS_URL = 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE';
+let SLACK_WEBHOOK_URL = 'YOUR_SLACK_WEBHOOK_URL_HERE';
+let GOOGLE_SHEETS_URL = 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE';
 
 // Load URLs from config if available
-if (typeof window.SLACK_CONFIG !== 'undefined') {
-    SLACK_WEBHOOK_URL = window.SLACK_CONFIG.webhookUrl;
-    GOOGLE_SHEETS_URL = window.SLACK_CONFIG.googleSheetsUrl;
+function loadConfig() {
+    if (typeof window.SLACK_CONFIG !== 'undefined') {
+        SLACK_WEBHOOK_URL = window.SLACK_CONFIG.webhookUrl || SLACK_WEBHOOK_URL;
+        GOOGLE_SHEETS_URL = window.SLACK_CONFIG.googleSheetsUrl || GOOGLE_SHEETS_URL;
+        console.log('Configuration loaded:', {
+            slack: SLACK_WEBHOOK_URL !== 'YOUR_SLACK_WEBHOOK_URL_HERE',
+            sheets: GOOGLE_SHEETS_URL !== 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE'
+        });
+    } else {
+        console.warn('SLACK_CONFIG not found, using default URLs');
+    }
 }
+
+// Load config immediately
+loadConfig();
 
 // DOM elements
 const form = document.getElementById('feedbackForm');
@@ -19,6 +30,9 @@ const errorMessage = document.getElementById('errorMessage');
 // Form submission handler
 form.addEventListener('submit', async (e) => {
     e.preventDefault();
+    
+    // Reload config in case it wasn't loaded initially
+    loadConfig();
     
     // Validate form
     if (!validateForm()) {
