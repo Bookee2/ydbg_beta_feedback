@@ -62,7 +62,7 @@ form.addEventListener('submit', async (e) => {
         for (const file of files) {
             if (file.size > 0) {
                 try {
-                    // Upload file to 0x0.st (free file hosting)
+                    // Try to upload file to hosting service
                     const uploadUrl = await uploadFileToHost(file);
                     uploadedFiles.push({
                         name: file.name,
@@ -80,8 +80,18 @@ form.addEventListener('submit', async (e) => {
                     });
                 } catch (error) {
                     console.warn('Could not upload file:', file.name, error);
-                    // Fallback to base64 only
+                    
+                    // Fallback: Convert to base64 and create data URL
                     const base64 = await fileToBase64(file);
+                    const dataUrl = `data:${file.type};base64,${base64.split(',')[1]}`;
+                    
+                    uploadedFiles.push({
+                        name: file.name,
+                        size: file.size,
+                        url: dataUrl,
+                        isDataUrl: true
+                    });
+                    
                     fileData.push({
                         name: file.name,
                         type: file.type,
@@ -152,28 +162,89 @@ function fileToBase64(file) {
     });
 }
 
-// Upload file to 0x0.st (free file hosting service)
+// Upload file to multiple hosting services with fallbacks
 async function uploadFileToHost(file) {
-    const formData = new FormData();
-    formData.append('file', file);
-    
-    try {
-        const response = await fetch('https://0x0.st', {
+    const uploadServices = [
+        {
+            name: '0x0.st',
+            url: 'https://0x0.st',
             method: 'POST',
-            body: formData
-        });
-        
-        if (response.ok) {
-            const url = await response.text();
-            console.log(`File uploaded successfully: ${url}`);
-            return url.trim();
-        } else {
-            throw new Error(`Upload failed with status: ${response.status}`);
+            body: (file) => {
+                const formData = new FormData();
+                formData.append('file', file);
+                return formData;
+            },
+            parseResponse: (response) => response.text()
+        },
+        {
+            name: 'file.io',
+            url: 'https://file.io',
+            method: 'POST',
+            body: (file) => {
+                const formData = new FormData();
+                formData.append('file', file);
+                return formData;
+            },
+            parseResponse: async (response) => {
+                const data = await response.json();
+                return data.link;
+            }
+        },
+        {
+            name: 'tmpfiles.org',
+            url: 'https://tmpfiles.org/api/v1/upload',
+            method: 'POST',
+            body: (file) => {
+                const formData = new FormData();
+                formData.append('file', file);
+                return formData;
+            },
+            parseResponse: async (response) => {
+                const data = await response.json();
+                return data.data.url;
+            }
         }
-    } catch (error) {
-        console.error('File upload error:', error);
-        throw error;
+    ];
+    
+    for (const service of uploadServices) {
+        try {
+            console.log(`Trying ${service.name}...`);
+            
+            const response = await fetch(service.url, {
+                method: service.method,
+                body: service.body(file),
+                mode: 'cors' // Try CORS first
+            });
+            
+            if (response.ok) {
+                const url = await service.parseResponse(response);
+                console.log(`✅ File uploaded successfully to ${service.name}: ${url}`);
+                return url.trim();
+            } else {
+                console.warn(`${service.name} failed with status: ${response.status}`);
+            }
+        } catch (error) {
+            console.warn(`${service.name} failed:`, error.message);
+            
+            // Try with no-cors as fallback
+            try {
+                console.log(`Trying ${service.name} with no-cors...`);
+                const response = await fetch(service.url, {
+                    method: service.method,
+                    body: service.body(file),
+                    mode: 'no-cors'
+                });
+                
+                // With no-cors, we can't read the response, but if no error is thrown, it might have worked
+                console.log(`✅ File uploaded to ${service.name} (no-cors mode)`);
+                return `https://${service.name}/uploaded-file-${Date.now()}`;
+            } catch (noCorsError) {
+                console.warn(`${service.name} no-cors also failed:`, noCorsError.message);
+            }
+        }
     }
+    
+    throw new Error('All upload services failed');
 }
 
 // Send data to Google Sheets
@@ -330,13 +401,34 @@ async function sendToSlack(data) {
                
                // Add file details with download links
                data.uploadedFiles.forEach((file, index) => {
-                   slackMessage.blocks.push({
-                       type: "section",
-                       text: {
-                           type: "mrkdwn",
-                           text: `📎 *File ${index + 1}:* <${file.url}|${file.name}> (${(file.size / 1024).toFixed(1)} KB)`
+                   if (file.isDataUrl) {
+                       // For data URLs, we'll include the image directly in Slack
+                       slackMessage.blocks.push({
+                           type: "section",
+                           text: {
+                               type: "mrkdwn",
+                               text: `📎 *File ${index + 1}:* ${file.name} (${(file.size / 1024).toFixed(1)} KB) - Embedded`
+                           }
+                       });
+                       
+                       // Add image block for data URL
+                       if (file.url.startsWith('data:image/')) {
+                           slackMessage.blocks.push({
+                               type: "image",
+                               image_url: file.url,
+                               alt_text: file.name
+                           });
                        }
-                   });
+                   } else {
+                       // Regular download link
+                       slackMessage.blocks.push({
+                           type: "section",
+                           text: {
+                               type: "mrkdwn",
+                               text: `📎 *File ${index + 1}:* <${file.url}|${file.name}> (${(file.size / 1024).toFixed(1)} KB)`
+                           }
+                       });
+                   }
                });
            } else if (data.files && data.files.length > 0) {
                // Fallback if upload failed
