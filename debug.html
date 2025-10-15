@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Feedback Form</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #1e293b;
+            color: #f8fafc;
+        }
+        .test-section {
+            background: #334155;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        button {
+            background: #dc2626;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #ef4444;
+        }
+        .result {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .success {
+            background: #059669;
+            color: white;
+        }
+        .error {
+            background: #dc2626;
+            color: white;
+        }
+        .info {
+            background: #3b82f6;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔧 Feedback Form Debug Tool</h1>
+    
+    <div class="test-section">
+        <h2>1. Configuration Check</h2>
+        <button onclick="checkConfig()">Check Configuration</button>
+        <div id="config-result" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>2. Slack Webhook Test</h2>
+        <button onclick="testSlack()">Test Slack</button>
+        <div id="slack-result" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>3. Google Sheets Test</h2>
+        <button onclick="testGoogleSheets()">Test Google Sheets</button>
+        <div id="sheets-result" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>4. Full Form Test</h2>
+        <button onclick="testFullForm()">Test Complete Form</button>
+        <div id="form-result" class="result"></div>
+    </div>
+
+    <script src="config.js"></script>
+    <script>
+        function showResult(elementId, message, type) {
+            const element = document.getElementById(elementId);
+            element.innerHTML = message;
+            element.className = `result ${type}`;
+        }
+
+        function checkConfig() {
+            const config = window.SLACK_CONFIG;
+            if (!config) {
+                showResult('config-result', '❌ No configuration found. Make sure config.js is loaded.', 'error');
+                return;
+            }
+            
+            let message = '<h3>Configuration Status:</h3>';
+            message += `<p><strong>Slack URL:</strong> ${config.webhookUrl ? '✅ Configured' : '❌ Missing'}</p>`;
+            message += `<p><strong>Google Sheets URL:</strong> ${config.googleSheetsUrl ? '✅ Configured' : '❌ Missing'}</p>`;
+            
+            if (config.webhookUrl && config.googleSheetsUrl) {
+                showResult('config-result', message, 'success');
+            } else {
+                showResult('config-result', message, 'error');
+            }
+        }
+
+        async function testSlack() {
+            showResult('slack-result', 'Testing Slack webhook...', 'info');
+            
+            try {
+                const testData = {
+                    name: 'Debug Test',
+                    os: 'iOS',
+                    feedbackType: 'Debug Test',
+                    details: 'This is a debug test to verify Slack integration',
+                    userAgent: navigator.userAgent,
+                    timestamp: new Date().toISOString()
+                };
+                
+                const response = await fetch(window.SLACK_CONFIG.webhookUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        text: `🔧 Debug Test: ${testData.name} - ${testData.details}`
+                    })
+                });
+                
+                if (response.ok) {
+                    showResult('slack-result', '✅ Slack webhook test successful!', 'success');
+                } else {
+                    showResult('slack-result', `❌ Slack test failed: ${response.status} ${response.statusText}`, 'error');
+                }
+            } catch (error) {
+                showResult('slack-result', `❌ Slack test error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testGoogleSheets() {
+            showResult('sheets-result', 'Testing Google Sheets...', 'info');
+            
+            try {
+                const testData = {
+                    name: 'Debug Test',
+                    os: 'iOS',
+                    feedbackType: 'Debug Test',
+                    details: 'This is a debug test to verify Google Sheets integration',
+                    userAgent: navigator.userAgent,
+                    timestamp: new Date().toISOString()
+                };
+                
+                const response = await fetch(window.SLACK_CONFIG.googleSheetsUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(testData)
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok && result.success) {
+                    showResult('sheets-result', '✅ Google Sheets test successful!', 'success');
+                } else {
+                    showResult('sheets-result', `❌ Google Sheets test failed: ${result.error || response.statusText}`, 'error');
+                }
+            } catch (error) {
+                showResult('sheets-result', `❌ Google Sheets test error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testFullForm() {
+            showResult('form-result', 'Testing complete form submission...', 'info');
+            
+            try {
+                const testData = {
+                    name: 'Debug Test User',
+                    os: 'iOS',
+                    feedbackType: 'Debug Test',
+                    details: 'This is a complete debug test of the feedback form submission process',
+                    userAgent: navigator.userAgent,
+                    timestamp: new Date().toISOString(),
+                    files: []
+                };
+                
+                // Test both integrations
+                const results = await Promise.allSettled([
+                    fetch(window.SLACK_CONFIG.webhookUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            text: `🔧 Debug Test: ${testData.name} - ${testData.details}`
+                        })
+                    }),
+                    fetch(window.SLACK_CONFIG.googleSheetsUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(testData)
+                    })
+                ]);
+                
+                const slackSuccess = results[0].status === 'fulfilled' && results[0].value.ok;
+                const sheetsSuccess = results[1].status === 'fulfilled' && results[1].value.ok;
+                
+                let message = '<h3>Full Form Test Results:</h3>';
+                message += `<p><strong>Slack:</strong> ${slackSuccess ? '✅ Success' : '❌ Failed'}</p>`;
+                message += `<p><strong>Google Sheets:</strong> ${sheetsSuccess ? '✅ Success' : '❌ Failed'}</p>`;
+                
+                if (slackSuccess || sheetsSuccess) {
+                    message += '<p><strong>Overall:</strong> ✅ Form submission would succeed</p>';
+                    showResult('form-result', message, 'success');
+                } else {
+                    message += '<p><strong>Overall:</strong> ❌ Form submission would fail</p>';
+                    showResult('form-result', message, 'error');
+                }
+                
+            } catch (error) {
+                showResult('form-result', `❌ Full form test error: ${error.message}`, 'error');
+            }
+        }
+
+        // Auto-run config check on page load
+        window.onload = function() {
+            checkConfig();
+        };
+    </script>
+</body>
+</html>
