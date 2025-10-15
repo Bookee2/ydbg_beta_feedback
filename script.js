@@ -1,5 +1,12 @@
-// Configuration - Replace with your actual Slack webhook URL
+// Configuration - Load URLs from config
 const SLACK_WEBHOOK_URL = 'YOUR_SLACK_WEBHOOK_URL_HERE';
+const GOOGLE_SHEETS_URL = 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE';
+
+// Load URLs from config if available
+if (typeof window.SLACK_CONFIG !== 'undefined') {
+    SLACK_WEBHOOK_URL = window.SLACK_CONFIG.webhookUrl;
+    GOOGLE_SHEETS_URL = window.SLACK_CONFIG.googleSheetsUrl;
+}
 
 // DOM elements
 const form = document.getElementById('feedbackForm');
@@ -51,8 +58,17 @@ form.addEventListener('submit', async (e) => {
         
         feedbackData.files = fileData;
         
+        // Send to both Slack and Google Sheets
+        const promises = [];
+        
         // Send to Slack
-        await sendToSlack(feedbackData);
+        promises.push(sendToSlack(feedbackData));
+        
+        // Send to Google Sheets
+        promises.push(sendToGoogleSheets(feedbackData));
+        
+        // Wait for both to complete
+        await Promise.all(promises);
         
         // Show success message
         showSuccess();
@@ -93,6 +109,38 @@ function fileToBase64(file) {
         reader.onload = () => resolve(reader.result);
         reader.onerror = error => reject(error);
     });
+}
+
+// Send data to Google Sheets
+async function sendToGoogleSheets(data) {
+    if (GOOGLE_SHEETS_URL === 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE') {
+        console.log('Google Sheets URL not configured, skipping...');
+        return;
+    }
+    
+    try {
+        const response = await fetch(GOOGLE_SHEETS_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+        });
+        
+        if (!response.ok) {
+            throw new Error(`Google Sheets API failed: ${response.status}`);
+        }
+        
+        const result = await response.json();
+        if (!result.success) {
+            throw new Error(result.error || 'Unknown error');
+        }
+        
+        console.log('Data sent to Google Sheets successfully');
+    } catch (error) {
+        console.error('Error sending to Google Sheets:', error);
+        // Don't throw error - we still want Slack to work even if Sheets fails
+    }
 }
 
 // Send data to Slack
