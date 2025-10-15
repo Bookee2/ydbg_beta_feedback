@@ -76,6 +76,7 @@
         <div id="formResult" class="result"></div>
     </div>
 
+    <script src="config.js"></script>
     <script>
         // Load configuration
         const GOOGLE_SHEETS_URL = window.SLACK_CONFIG?.googleSheetsUrl || 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE';
@@ -214,7 +215,5 @@
             logResult('optionsResult', '⚠️ Please update config.js with your Google Apps Script URL', 'warning');
         }
     </script>
-    
-    <script src="config.js"></script>
 </body>
 </html>
