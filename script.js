@@ -448,10 +448,17 @@ async function sendToSlack(data) {
                     return;
                 }
                 
-                if (response.ok) {
-                    console.log('Data sent to Slack successfully');
-                    return;
-                }
+                   if (response.ok) {
+                       console.log('✅ Main message sent to Slack successfully');
+                       
+                       // Send files separately if any
+                       if (data.uploadedFiles && data.uploadedFiles.length > 0) {
+                           console.log('Sending files separately...');
+                           await sendFilesToSlack(data.uploadedFiles);
+                       }
+                       
+                       return;
+                   }
             } catch (error) {
                 console.log(`Slack ${approach.name} approach failed:`, error.message);
                 continue; // Try next approach
@@ -463,6 +470,53 @@ async function sendToSlack(data) {
     } catch (error) {
         console.error('Error sending to Slack:', error);
         throw error; // Re-throw so Promise.allSettled can handle it
+    }
+}
+
+// Send files separately to Slack
+async function sendFilesToSlack(files) {
+    for (const file of files) {
+        try {
+            console.log(`Sending file: ${file.name}`);
+            
+            const fileMessage = {
+                text: `📎 Screenshot: ${file.name}`,
+                blocks: [
+                    {
+                        type: "section",
+                        text: {
+                            type: "mrkdwn",
+                            text: `📎 *Screenshot:* ${file.name} (${(file.size / 1024).toFixed(1)} KB)`
+                        }
+                    }
+                ]
+            };
+            
+            // Add image if it's a data URL
+            if (file.url.startsWith('data:image/')) {
+                fileMessage.blocks.push({
+                    type: "image",
+                    image_url: file.url,
+                    alt_text: file.name
+                });
+            }
+            
+            // Send file message
+            const response = await fetch(SLACK_WEBHOOK_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(fileMessage),
+                mode: 'no-cors'
+            });
+            
+            console.log(`✅ File ${file.name} sent to Slack`);
+            
+            // Small delay between files to avoid rate limiting
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+        } catch (error) {
+            console.warn(`Failed to send file ${file.name}:`, error);
+        }
     }
 }
 
