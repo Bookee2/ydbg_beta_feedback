@@ -15,10 +15,10 @@
  */
 
 // Replace this with your Google Sheet ID (found in the URL)
-const SHEET_ID = 'YOUR_GOOGLE_SHEET_ID_HERE';
+const SHEET_ID = '19sspNrLcvU68k0BYurY5RjedZRE1iHMo-6ZIYNbBXIU';
 
 // Sheet name (you can change this if needed)
-const SHEET_NAME = 'Feedback';
+const SHEET_NAME = 'YDBG BetaFeedback';
 
 function doPost(e) {
   try {
