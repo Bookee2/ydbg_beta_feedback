@@ -84,6 +84,13 @@ function doGet(e) {
     .setMimeType(ContentService.MimeType.TEXT);
 }
 
+function doOptions(e) {
+  // Handle OPTIONS requests for CORS preflight
+  return ContentService
+    .createTextOutput('')
+    .setMimeType(ContentService.MimeType.TEXT);
+}
+
 /**
  * SIMPLE TEST FUNCTION - Run this one!
  * This function has no dependencies and tests everything step by step

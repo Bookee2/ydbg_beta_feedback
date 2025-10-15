@@ -95,10 +95,13 @@ form.addEventListener('submit', async (e) => {
         });
         
         // Send to both Slack and Google Sheets
+        console.log('Starting to send data to services...');
         const results = await Promise.allSettled([
             sendToSlack(feedbackData),
             sendToGoogleSheets(feedbackData)
         ]);
+        
+        console.log('Service results:', results);
         
         // Check if at least one succeeded
         const slackSuccess = results[0].status === 'fulfilled';
