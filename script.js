@@ -253,38 +253,39 @@ async function sendToGoogleSheets(data) {
            
            // Try multiple approaches to bypass CORS
            const approaches = [
-            // Approach 1: Direct with no-cors
-            {
-                name: 'no-cors',
-                options: {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data),
-                    mode: 'no-cors'
-                }
-            },
-            // Approach 2: With CORS proxy
-            {
-                name: 'cors-proxy',
-                options: {
-                    method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'X-Requested-With': 'XMLHttpRequest'
-                    },
-                    body: JSON.stringify(data)
-                },
-                url: 'https://cors-anywhere.herokuapp.com/' + GOOGLE_SHEETS_URL
-            },
-            // Approach 3: Direct without headers
-            {
-                name: 'simple',
-                options: {
-                    method: 'POST',
-                    body: JSON.stringify(data)
-                }
-            }
-        ];
+               // Approach 1: Direct with CORS (try this first)
+               {
+                   name: 'cors',
+                   options: {
+                       method: 'POST',
+                       headers: { 'Content-Type': 'application/json' },
+                       body: JSON.stringify(data)
+                   }
+               },
+               // Approach 2: Direct with no-cors
+               {
+                   name: 'no-cors',
+                   options: {
+                       method: 'POST',
+                       headers: { 'Content-Type': 'application/json' },
+                       body: JSON.stringify(data),
+                       mode: 'no-cors'
+                   }
+               },
+               // Approach 3: With CORS proxy
+               {
+                   name: 'cors-proxy',
+                   options: {
+                       method: 'POST',
+                       headers: {
+                           'Content-Type': 'application/json',
+                           'X-Requested-With': 'XMLHttpRequest'
+                       },
+                       body: JSON.stringify(data)
+                   },
+                   url: 'https://cors-anywhere.herokuapp.com/' + GOOGLE_SHEETS_URL
+               }
+           ];
         
         for (const approach of approaches) {
             try {
@@ -292,13 +293,6 @@ async function sendToGoogleSheets(data) {
                 const url = approach.url || GOOGLE_SHEETS_URL;
                 const response = await fetch(url, approach.options);
                 
-                   if (approach.name === 'no-cors') {
-                       // With no-cors, we can't read the response, but if no error is thrown, it likely worked
-                       console.log('✅ Data sent to Google Sheets (no-cors mode)');
-                       console.log('Note: With no-cors mode, we cannot verify if the data was actually stored');
-                       return;
-                   }
-
                    if (response.ok) {
                        const result = await response.json();
                        console.log('Google Sheets response:', result);
@@ -311,6 +305,12 @@ async function sendToGoogleSheets(data) {
                    } else {
                        console.warn(`Google Sheets ${approach.name} approach failed with status:`, response.status);
                    }
+                } else if (approach.name === 'no-cors') {
+                    // With no-cors, we can't read the response, but if no error is thrown, it might have worked
+                    console.log('⚠️ Data sent to Google Sheets (no-cors mode) - cannot verify success');
+                    console.log('Note: With no-cors mode, we cannot verify if the data was actually stored');
+                    return;
+                }
             } catch (error) {
                 console.log(`${approach.name} approach failed:`, error.message);
                 continue; // Try next approach
