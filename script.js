@@ -382,14 +382,6 @@ async function sendToSlack(data) {
         if (data.uploadedFiles && data.uploadedFiles.length > 0) {
             console.log(`Adding ${data.uploadedFiles.length} files to message...`);
             
-            slackMessage.blocks.push({
-                type: "section",
-                text: {
-                    type: "mrkdwn",
-                    text: `*📎 Screenshots:* ${data.uploadedFiles.length} file(s) attached`
-                }
-            });
-            
             // Add file details (but not images to avoid size limits)
             data.uploadedFiles.forEach((file, index) => {
                 slackMessage.blocks.push({
@@ -453,6 +445,12 @@ async function sendToSlack(data) {
                     console.log('✅ Main message sent to Slack (no-cors mode)');
                     
                     // Send files separately if any
+                    console.log('Checking for files to send...', {
+                        hasUploadedFiles: !!data.uploadedFiles,
+                        uploadedFilesLength: data.uploadedFiles ? data.uploadedFiles.length : 0,
+                        uploadedFiles: data.uploadedFiles
+                    });
+                    
                     if (data.uploadedFiles && data.uploadedFiles.length > 0) {
                         console.log('Sending files separately...', data.uploadedFiles);
                         await sendFilesToSlack(data.uploadedFiles);
@@ -507,21 +505,16 @@ async function sendFilesToSlack(files) {
                             type: "mrkdwn",
                             text: `📎 *Screenshot:* ${file.name} (${(file.size / 1024).toFixed(1)} KB)`
                         }
+                    },
+                    {
+                        type: "section",
+                        text: {
+                            type: "mrkdwn",
+                            text: `*Note:* File is stored in Google Sheets. The image data is too large to display directly in Slack.`
+                        }
                     }
                 ]
             };
-            
-            // Add image if it's a data URL
-            if (file.url.startsWith('data:image/')) {
-                console.log(`Adding image block for ${file.name}`);
-                fileMessage.blocks.push({
-                    type: "image",
-                    image_url: file.url,
-                    alt_text: file.name
-                });
-            } else {
-                console.log(`File ${file.name} is not a data URL:`, file.url);
-            }
             
             console.log(`Sending file message for ${file.name}:`, fileMessage);
             
