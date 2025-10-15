@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Final Test - Bypass CORS</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #0f172a;
+            color: #f8fafc;
+        }
+        .test-section {
+            background: #1e293b;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            border: 1px solid #334155;
+        }
+        button {
+            background: #dc2626;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #ef4444;
+        }
+        .result {
+            background: #0f172a;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+        .success { border-left: 4px solid #10b981; }
+        .error { border-left: 4px solid #ef4444; }
+        .warning { border-left: 4px solid #f59e0b; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Final Test - Bypass CORS</h1>
+    
+    <div class="test-section">
+        <h2>Test: no-cors Mode (Should Work)</h2>
+        <p>This uses no-cors mode to bypass CORS restrictions.</p>
+        <button onclick="testNoCors()">Test no-cors Mode</button>
+        <div id="noCorsResult" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test: Actual Form Data</h2>
+        <p>This sends the same data that the actual form would send.</p>
+        <button onclick="testFormData()">Test Form Data</button>
+        <div id="formResult" class="result"></div>
+    </div>
+
+    <script src="config.js"></script>
+    <script>
+        const GOOGLE_SHEETS_URL = window.SLACK_CONFIG?.googleSheetsUrl || 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE';
+        
+        function logResult(elementId, message, type = 'info') {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.className = `result ${type}`;
+        }
+
+        async function testNoCors() {
+            logResult('noCorsResult', 'Testing no-cors mode...', 'info');
+            
+            try {
+                const testData = {
+                    name: 'No-Cors Test',
+                    os: 'iOS',
+                    feedbackType: 'Bug / Error',
+                    details: 'Testing no-cors mode to bypass CORS restrictions',
+                    files: [],
+                    userAgent: navigator.userAgent
+                };
+
+                console.log('Sending data with no-cors mode:', testData);
+
+                const response = await fetch(GOOGLE_SHEETS_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(testData),
+                    mode: 'no-cors'
+                });
+                
+                console.log('no-cors response:', response);
+                
+                logResult('noCorsResult', 
+                    `No-Cors Test Results:\n` +
+                    `Status: ${response.status}\n` +
+                    `Status Text: ${response.statusText}\n` +
+                    `Type: ${response.type}\n` +
+                    `Response OK: ${response.ok}\n\n` +
+                    `Note: With no-cors mode, we can't read the response body.\n` +
+                    `But if no error is thrown, the request likely succeeded.\n\n` +
+                    `Check your Google Sheet to see if a new row was added!`, 
+                    response.status === 0 ? 'success' : 'warning'
+                );
+            } catch (error) {
+                logResult('noCorsResult', 
+                    `No-Cors Test Error:\n` +
+                    `Error: ${error.message}\n` +
+                    `This suggests a network connectivity issue.`, 
+                    'error'
+                );
+            }
+        }
+
+        async function testFormData() {
+            logResult('formResult', 'Testing form data...', 'info');
+            
+            try {
+                const formData = {
+                    name: 'Kris Brown',
+                    os: 'iOS',
+                    feedbackType: 'Bug / Error',
+                    details: 'Testing form submission with actual data - this should appear in Google Sheets',
+                    files: [],
+                    userAgent: navigator.userAgent
+                };
+
+                console.log('Sending form data:', formData);
+
+                const response = await fetch(GOOGLE_SHEETS_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData),
+                    mode: 'no-cors'
+                });
+                
+                console.log('Form data response:', response);
+                
+                logResult('formResult', 
+                    `Form Data Test Results:\n` +
+                    `Status: ${response.status}\n` +
+                    `Status Text: ${response.statusText}\n` +
+                    `Type: ${response.type}\n` +
+                    `Response OK: ${response.ok}\n\n` +
+                    `✅ Request sent successfully!\n` +
+                    `📊 Check your Google Sheet for a new row with:\n` +
+                    `   - Name: Kris Brown\n` +
+                    `   - OS: iOS\n` +
+                    `   - Feedback Type: Bug / Error\n` +
+                    `   - Details: Testing form submission...`, 
+                    response.status === 0 ? 'success' : 'warning'
+                );
+            } catch (error) {
+                logResult('formResult', 
+                    `Form Data Test Error:\n` +
+                    `Error: ${error.message}`, 
+                    'error'
+                );
+            }
+        }
+
+        // Check if config is loaded
+        if (GOOGLE_SHEETS_URL === 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE') {
+            logResult('noCorsResult', '⚠️ Please update config.js with your Google Apps Script URL', 'warning');
+        } else {
+            logResult('noCorsResult', `✅ Configuration loaded. URL: ${GOOGLE_SHEETS_URL}`, 'success');
+        }
+    </script>
+</body>
+</html>
