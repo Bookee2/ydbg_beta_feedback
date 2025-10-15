@@ -164,72 +164,80 @@ async function sendToGoogleSheets(data) {
 // Send data to Slack
 async function sendToSlack(data) {
     if (SLACK_WEBHOOK_URL === 'YOUR_SLACK_WEBHOOK_URL_HERE') {
-        throw new Error('Slack webhook URL not configured');
+        console.log('Slack webhook URL not configured, skipping...');
+        return; // Don't throw error, just skip
     }
     
-    // Format the message for Slack
-    const slackMessage = {
-        text: `New YDBG App Beta Feedback`,
-        blocks: [
-            {
-                type: "header",
-                text: {
-                    type: "plain_text",
-                    text: "🔍 New Beta Feedback Received"
-                }
-            },
-            {
-                type: "section",
-                fields: [
-                    {
-                        type: "mrkdwn",
-                        text: `*Name:*\n${data.name}`
-                    },
-                    {
-                        type: "mrkdwn",
-                        text: `*OS:*\n${data.os}`
-                    },
-                    {
-                        type: "mrkdwn",
-                        text: `*Feedback Type:*\n${data.feedbackType}`
-                    },
-                    {
-                        type: "mrkdwn",
-                        text: `*Timestamp:*\n${new Date(data.timestamp).toLocaleString()}`
+    try {
+        // Format the message for Slack
+        const slackMessage = {
+            text: `New YDBG App Beta Feedback`,
+            blocks: [
+                {
+                    type: "header",
+                    text: {
+                        type: "plain_text",
+                        text: "🔍 New Beta Feedback Received"
                     }
-                ]
-            },
-            {
+                },
+                {
+                    type: "section",
+                    fields: [
+                        {
+                            type: "mrkdwn",
+                            text: `*Name:*\n${data.name}`
+                        },
+                        {
+                            type: "mrkdwn",
+                            text: `*OS:*\n${data.os}`
+                        },
+                        {
+                            type: "mrkdwn",
+                            text: `*Feedback Type:*\n${data.feedbackType}`
+                        },
+                        {
+                            type: "mrkdwn",
+                            text: `*Timestamp:*\n${new Date(data.timestamp).toLocaleString()}`
+                        }
+                    ]
+                },
+                {
+                    type: "section",
+                    text: {
+                        type: "mrkdwn",
+                        text: `*Details:*\n${data.details}`
+                    }
+                }
+            ]
+        };
+        
+        // Add file attachments if any
+        if (data.files && data.files.length > 0) {
+            slackMessage.blocks.push({
                 type: "section",
                 text: {
                     type: "mrkdwn",
-                    text: `*Details:*\n${data.details}`
+                    text: `*Screenshots:* ${data.files.length} file(s) attached`
                 }
-            }
-        ]
-    };
-    
-    // Add file attachments if any
-    if (data.files && data.files.length > 0) {
-        slackMessage.blocks.push({
-            type: "section",
-            text: {
-                type: "mrkdwn",
-                text: `*Screenshots:* ${data.files.length} file(s) attached`
-            }
+            });
+        }
+        
+        const response = await fetch(SLACK_WEBHOOK_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(slackMessage)
         });
-    }
-    
-    const response = await fetch(SLACK_WEBHOOK_URL, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(slackMessage)
-    });
-    
-    if (!response.ok) {
-        throw new Error(`Slack webhook failed: ${response.status}`);
+        
+        if (!response.ok) {
+            throw new Error(`Slack webhook failed: ${response.status}`);
+        }
+        
+        console.log('Data sent to Slack successfully');
+    } catch (error) {
+        console.error('Error sending to Slack:', error);
+        throw error; // Re-throw so Promise.allSettled can handle it
     }
 }
 

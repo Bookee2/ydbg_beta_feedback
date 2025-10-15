@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Form Submission Debug</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background: #1e293b; color: #f8fafc; }
+        .debug-section { background: #334155; padding: 20px; margin: 20px 0; border-radius: 8px; }
+        button { background: #dc2626; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin: 5px; }
+        .result { margin-top: 10px; padding: 10px; border-radius: 5px; }
+        .success { background: #059669; }
+        .error { background: #dc2626; }
+        .info { background: #3b82f6; }
+        .warning { background: #f59e0b; color: #000; }
+        .log { background: #111827; padding: 10px; border-radius: 5px; font-family: monospace; font-size: 12px; max-height: 200px; overflow-y: auto; }
+    </style>
+</head>
+<body>
+    <h1>🔧 Form Submission Debug Tool</h1>
+    
+    <div class="debug-section">
+        <h2>Step 1: Check Configuration</h2>
+        <button onclick="checkConfig()">Check Config</button>
+        <div id="config-result" class="result"></div>
+    </div>
+    
+    <div class="debug-section">
+        <h2>Step 2: Test Individual Services</h2>
+        <button onclick="testSlackOnly()">Test Slack Only</button>
+        <button onclick="testSheetsOnly()">Test Google Sheets Only</button>
+        <div id="services-result" class="result"></div>
+    </div>
+    
+    <div class="debug-section">
+        <h2>Step 3: Simulate Form Submission</h2>
+        <button onclick="simulateFormSubmission()">Simulate Form Submission</button>
+        <div id="form-result" class="result"></div>
+    </div>
+    
+    <div class="debug-section">
+        <h2>Debug Log</h2>
+        <div id="debug-log" class="log"></div>
+        <button onclick="clearLog()">Clear Log</button>
+    </div>
+
+    <script src="config.js"></script>
+    <script>
+        function log(message) {
+            const logDiv = document.getElementById('debug-log');
+            const timestamp = new Date().toLocaleTimeString();
+            logDiv.innerHTML += `[${timestamp}] ${message}\n`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+            console.log(message);
+        }
+
+        function clearLog() {
+            document.getElementById('debug-log').innerHTML = '';
+        }
+
+        function showResult(elementId, message, type) {
+            const element = document.getElementById(elementId);
+            element.innerHTML = message;
+            element.className = `result ${type}`;
+        }
+
+        function checkConfig() {
+            log('Checking configuration...');
+            const config = window.SLACK_CONFIG;
+            
+            if (!config) {
+                showResult('config-result', '❌ No configuration found. Make sure config.js is loaded.', 'error');
+                log('ERROR: No SLACK_CONFIG found');
+                return;
+            }
+            
+            let message = '<h3>Configuration Status:</h3>';
+            message += `<p><strong>Slack URL:</strong> ${config.webhookUrl ? '✅ Configured' : '❌ Missing'}</p>`;
+            message += `<p><strong>Google Sheets URL:</strong> ${config.googleSheetsUrl ? '✅ Configured' : '❌ Missing'}</p>`;
+            
+            if (config.webhookUrl && config.googleSheetsUrl) {
+                showResult('config-result', message, 'success');
+                log('SUCCESS: Configuration loaded');
+            } else {
+                showResult('config-result', message, 'error');
+                log('ERROR: Missing configuration values');
+            }
+        }
+
+        async function testSlackOnly() {
+            log('Testing Slack webhook...');
+            showResult('services-result', 'Testing Slack...', 'info');
+            
+            try {
+                const testData = {
+                    text: '🔧 Debug Test: Slack webhook test'
+                };
+                
+                const response = await fetch(window.SLACK_CONFIG.webhookUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(testData)
+                });
+                
+                if (response.ok) {
+                    showResult('services-result', '✅ Slack test successful!', 'success');
+                    log('SUCCESS: Slack webhook working');
+                } else {
+                    showResult('services-result', `❌ Slack test failed: ${response.status}`, 'error');
+                    log(`ERROR: Slack failed with status ${response.status}`);
+                }
+            } catch (error) {
+                showResult('services-result', `❌ Slack test error: ${error.message}`, 'error');
+                log(`ERROR: Slack test failed - ${error.message}`);
+            }
+        }
+
+        async function testSheetsOnly() {
+            log('Testing Google Sheets...');
+            showResult('services-result', 'Testing Google Sheets...', 'info');
+            
+            try {
+                const testData = {
+                    name: 'Debug Test',
+                    os: 'iOS',
+                    feedbackType: 'Debug Test',
+                    details: 'Testing Google Sheets integration',
+                    userAgent: navigator.userAgent,
+                    timestamp: new Date().toISOString()
+                };
+                
+                log('Sending data to Google Sheets...');
+                const response = await fetch(window.SLACK_CONFIG.googleSheetsUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(testData),
+                    mode: 'no-cors'
+                });
+                
+                // With no-cors, we can't read the response, but if no error is thrown, it likely worked
+                showResult('services-result', '✅ Google Sheets test sent (no-cors mode)', 'success');
+                log('SUCCESS: Google Sheets request sent (no-cors)');
+                
+            } catch (error) {
+                showResult('services-result', `❌ Google Sheets test error: ${error.message}`, 'error');
+                log(`ERROR: Google Sheets test failed - ${error.message}`);
+            }
+        }
+
+        async function simulateFormSubmission() {
+            log('Simulating form submission...');
+            showResult('form-result', 'Simulating form submission...', 'info');
+            
+            try {
+                // Simulate the exact data structure from the form
+                const formData = {
+                    name: 'Debug Test User',
+                    os: 'iOS',
+                    feedbackType: 'Debug Test',
+                    details: 'This is a simulated form submission for debugging',
+                    userAgent: navigator.userAgent,
+                    timestamp: new Date().toISOString(),
+                    files: []
+                };
+                
+                log('Testing both services simultaneously...');
+                
+                // Test both services like the actual form does
+                const results = await Promise.allSettled([
+                    // Slack test
+                    fetch(window.SLACK_CONFIG.webhookUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            text: `🔧 Debug Test: ${formData.name} - ${formData.details}`
+                        })
+                    }),
+                    // Google Sheets test
+                    fetch(window.SLACK_CONFIG.googleSheetsUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(formData),
+                        mode: 'no-cors'
+                    })
+                ]);
+                
+                const slackSuccess = results[0].status === 'fulfilled' && results[0].value.ok;
+                const sheetsSuccess = results[1].status === 'fulfilled';
+                
+                let message = '<h3>Form Submission Test Results:</h3>';
+                message += `<p><strong>Slack:</strong> ${slackSuccess ? '✅ Success' : '❌ Failed'}</p>`;
+                message += `<p><strong>Google Sheets:</strong> ${sheetsSuccess ? '✅ Success' : '❌ Failed'}</p>`;
+                
+                if (slackSuccess || sheetsSuccess) {
+                    message += '<p><strong>Overall:</strong> ✅ Form submission would succeed</p>';
+                    showResult('form-result', message, 'success');
+                    log('SUCCESS: Form submission test passed');
+                } else {
+                    message += '<p><strong>Overall:</strong> ❌ Form submission would fail</p>';
+                    showResult('form-result', message, 'error');
+                    log('ERROR: Form submission test failed');
+                }
+                
+            } catch (error) {
+                showResult('form-result', `❌ Form simulation error: ${error.message}`, 'error');
+                log(`ERROR: Form simulation failed - ${error.message}`);
+            }
+        }
+
+        // Auto-run config check on page load
+        window.onload = function() {
+            log('Debug tool loaded');
+            checkConfig();
+        };
+    </script>
+</body>
+</html>
