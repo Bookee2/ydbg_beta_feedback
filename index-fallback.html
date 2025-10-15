@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YDBG App Beta Feedback - Fallback Version</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo-container">
+                <img src="logo.webp" alt="YDBG Logo" class="logo">
+            </div>
+            <div class="header-content">
+                <h1>YDBG App Beta Feedback</h1>
+                <p class="subtitle">Thanks for helping test the rebuilt version of our app before launch. We're looking for honest, detailed feedback — both what feels better and what doesn't yet work right. There are no wrong answers. Screenshots or examples are appreciated.</p>
+            </div>
+        </header>
+
+        <form id="feedbackForm" class="feedback-form" action="https://formspree.io/f/YOUR_FORM_ID" method="POST">
+            <div class="form-group">
+                <label for="name">Name *</label>
+                <select id="name" name="name" required>
+                    <option value="">Select your name</option>
+                    <option value="Anthony Strayhorn">Anthony Strayhorn</option>
+                    <option value="Erica James-Strayhorn">Erica James-Strayhorn</option>
+                    <option value="Sarah Bivens">Sarah Bivens</option>
+                    <option value="Matthew Bivens">Matthew Bivens</option>
+                    <option value="Sandy Chambers">Sandy Chambers</option>
+                    <option value="Kris Brown">Kris Brown</option>
+                    <option value="Day Adeogba">Day Adeogba</option>
+                    <option value="Chanda Adeogba">Chanda Adeogba</option>
+                    <option value="Bill Jamison">Bill Jamison</option>
+                    <option value="Nancy Jamison">Nancy Jamison</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="os">Operating System *</label>
+                <select id="os" name="os" required>
+                    <option value="">Select your operating system</option>
+                    <option value="iOS">iOS</option>
+                    <option value="Android">Android</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="feedbackType">Type of Feedback *</label>
+                <select id="feedbackType" name="feedbackType" required>
+                    <option value="">Select feedback type</option>
+                    <option value="Bug / Error">Bug / Error</option>
+                    <option value="UI / UX (look and feel of the app)">UI / UX (look and feel of the app)</option>
+                    <option value="Feature configuration / workflow">Feature configuration / workflow</option>
+                    <option value="Improvement suggestion">Improvement suggestion</option>
+                    <option value="New feature request">New feature request</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="details">Please tell us more: *</label>
+                <textarea id="details" name="details" rows="6" placeholder="Please provide detailed feedback about your experience..." required></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="screenshots">Pictures / Screenshots</label>
+                <input type="file" id="screenshots" name="screenshots" accept="image/*" multiple>
+                <small class="file-help">You can upload multiple images (PNG, JPG, GIF)</small>
+            </div>
+
+            <!-- Hidden fields for additional data -->
+            <input type="hidden" name="timestamp" id="timestamp">
+            <input type="hidden" name="userAgent" id="userAgent">
+
+            <div class="form-actions">
+                <button type="submit" class="submit-btn">
+                    <span class="btn-text">Submit Feedback</span>
+                </button>
+            </div>
+        </form>
+
+        <div id="successMessage" class="success-message" style="display: none;">
+            <h2>Thank you!</h2>
+            <p>Your feedback has been submitted successfully. We appreciate your help in making the YDBG App better!</p>
+        </div>
+    </div>
+
+    <script>
+        // Simple form enhancement without complex fetch requests
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('feedbackForm');
+            const timestampField = document.getElementById('timestamp');
+            const userAgentField = document.getElementById('userAgent');
+            
+            // Set timestamp and user agent
+            timestampField.value = new Date().toISOString();
+            userAgentField.value = navigator.userAgent;
+            
+            // Add some basic form validation
+            form.addEventListener('submit', function(e) {
+                const name = document.getElementById('name').value;
+                const os = document.getElementById('os').value;
+                const feedbackType = document.getElementById('feedbackType').value;
+                const details = document.getElementById('details').value.trim();
+                
+                if (!name || !os || !feedbackType || !details) {
+                    e.preventDefault();
+                    alert('Please fill in all required fields.');
+                    return false;
+                }
+                
+                if (details.length < 10) {
+                    e.preventDefault();
+                    alert('Please provide more detailed feedback (at least 10 characters).');
+                    return false;
+                }
+                
+                // Show loading state
+                const submitBtn = document.querySelector('.submit-btn');
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<span>Sending...</span>';
+            });
+        });
+    </script>
+</body>
+</html>

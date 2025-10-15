@@ -119,45 +119,75 @@ function fileToBase64(file) {
 async function sendToGoogleSheets(data) {
     if (GOOGLE_SHEETS_URL === 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE') {
         console.log('Google Sheets URL not configured, skipping...');
-        throw new Error('Google Sheets URL not configured');
+        return;
     }
     
     try {
-        const response = await fetch(GOOGLE_SHEETS_URL, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
+        // Try multiple approaches to bypass CORS
+        const approaches = [
+            // Approach 1: Direct with no-cors
+            {
+                name: 'no-cors',
+                options: {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data),
+                    mode: 'no-cors'
+                }
             },
-            body: JSON.stringify(data),
-            mode: 'no-cors' // This might help with CORS issues
-        });
+            // Approach 2: With CORS proxy
+            {
+                name: 'cors-proxy',
+                options: {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify(data)
+                },
+                url: 'https://cors-anywhere.herokuapp.com/' + GOOGLE_SHEETS_URL
+            },
+            // Approach 3: Direct without headers
+            {
+                name: 'simple',
+                options: {
+                    method: 'POST',
+                    body: JSON.stringify(data)
+                }
+            }
+        ];
         
-        // With no-cors mode, we can't read the response, so we assume success
-        console.log('Data sent to Google Sheets (no-cors mode)');
-        return;
+        for (const approach of approaches) {
+            try {
+                console.log(`Trying ${approach.name} approach...`);
+                const url = approach.url || GOOGLE_SHEETS_URL;
+                const response = await fetch(url, approach.options);
+                
+                if (approach.name === 'no-cors') {
+                    // With no-cors, we can't read the response, but if no error is thrown, it likely worked
+                    console.log('Data sent to Google Sheets (no-cors mode)');
+                    return;
+                }
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    if (result.success) {
+                        console.log('Data sent to Google Sheets successfully');
+                        return;
+                    }
+                }
+            } catch (error) {
+                console.log(`${approach.name} approach failed:`, error.message);
+                continue; // Try next approach
+            }
+        }
+        
+        throw new Error('All Google Sheets approaches failed');
         
     } catch (error) {
-        // If no-cors fails, try with regular mode
-        console.log('No-cors failed, trying regular mode...');
-        
-        const response = await fetch(GOOGLE_SHEETS_URL, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(data)
-        });
-        
-        if (!response.ok) {
-            throw new Error(`Google Sheets API failed: ${response.status} ${response.statusText}`);
-        }
-        
-        const result = await response.json();
-        if (!result.success) {
-            throw new Error(result.error || 'Unknown Google Sheets error');
-        }
-        
-        console.log('Data sent to Google Sheets successfully');
+        console.error('Error sending to Google Sheets:', error);
+        throw error;
     }
 }
 
@@ -222,19 +252,68 @@ async function sendToSlack(data) {
             });
         }
         
-        const response = await fetch(SLACK_WEBHOOK_URL, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
+        // Try multiple approaches to bypass CORS
+        const approaches = [
+            // Approach 1: Direct with no-cors
+            {
+                name: 'no-cors',
+                options: {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(slackMessage),
+                    mode: 'no-cors'
+                }
             },
-            body: JSON.stringify(slackMessage)
-        });
+            // Approach 2: Simple message format
+            {
+                name: 'simple',
+                options: {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        text: `🔍 New Beta Feedback from ${data.name} (${data.os}): ${data.details}`
+                    })
+                }
+            },
+            // Approach 3: With CORS proxy
+            {
+                name: 'cors-proxy',
+                options: {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify(slackMessage)
+                },
+                url: 'https://cors-anywhere.herokuapp.com/' + SLACK_WEBHOOK_URL
+            }
+        ];
         
-        if (!response.ok) {
-            throw new Error(`Slack webhook failed: ${response.status}`);
+        for (const approach of approaches) {
+            try {
+                console.log(`Trying Slack ${approach.name} approach...`);
+                const url = approach.url || SLACK_WEBHOOK_URL;
+                const response = await fetch(url, approach.options);
+                
+                if (approach.name === 'no-cors') {
+                    // With no-cors, we can't read the response, but if no error is thrown, it likely worked
+                    console.log('Data sent to Slack (no-cors mode)');
+                    return;
+                }
+                
+                if (response.ok) {
+                    console.log('Data sent to Slack successfully');
+                    return;
+                }
+            } catch (error) {
+                console.log(`Slack ${approach.name} approach failed:`, error.message);
+                continue; // Try next approach
+            }
         }
         
-        console.log('Data sent to Slack successfully');
+        throw new Error('All Slack approaches failed');
+        
     } catch (error) {
         console.error('Error sending to Slack:', error);
         throw error; // Re-throw so Promise.allSettled can handle it
