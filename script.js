@@ -268,6 +268,7 @@ async function sendToGoogleSheets(data) {
         formData.append('os', data.os || '');
         formData.append('feedbackType', data.feedbackType || '');
         formData.append('details', data.details || '');
+        // Send file data as JSON string so Google Apps Script can process it
         formData.append('files', JSON.stringify(data.files || []));
         formData.append('userAgent', data.userAgent || navigator.userAgent);
 

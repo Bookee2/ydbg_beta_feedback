@@ -76,7 +76,7 @@ function doPost(e) {
       Logger.log('Creating new sheet...');
       sheet = spreadsheet.insertSheet(SHEET_NAME);
       sheet.getRange(1, 1, 1, 7).setValues([
-        ['Timestamp', 'Name', 'Operating System', 'Feedback Type', 'Details', 'Screenshots Count', 'User Agent']
+        ['Timestamp', 'Name', 'Operating System', 'Feedback Type', 'Details', 'Screenshot Links', 'User Agent']
       ]);
       sheet.getRange(1, 1, 1, 7).setFontWeight('bold');
       Logger.log('Sheet created successfully');
@@ -84,7 +84,41 @@ function doPost(e) {
     
     // Prepare the row data
     const timestamp = new Date().toLocaleString();
-    const screenshotsCount = data.files ? data.files.length : 0;
+    
+    // Handle file uploads and get links
+    let fileLinks = '';
+    if (data.files && data.files.length > 0) {
+      Logger.log('=== Processing file uploads ===');
+      const uploadedLinks = [];
+      
+      for (let i = 0; i < data.files.length; i++) {
+        const file = data.files[i];
+        Logger.log(`Processing file ${i + 1}: ${file.name}`);
+        
+        try {
+          // Convert base64 to blob
+          const base64Data = file.url.split(',')[1]; // Remove data:image/jpeg;base64, prefix
+          const blob = Utilities.newBlob(
+            Utilities.base64Decode(base64Data),
+            file.type || 'image/jpeg',
+            file.name
+          );
+          
+          // Upload to Google Drive
+          const fileId = DriveApp.createFile(blob).getId();
+          const fileUrl = `https://drive.google.com/file/d/${fileId}/view?usp=sharing`;
+          
+          uploadedLinks.push(fileUrl);
+          Logger.log(`File uploaded successfully: ${fileUrl}`);
+        } catch (uploadError) {
+          Logger.log(`Error uploading file ${file.name}: ${uploadError.toString()}`);
+          uploadedLinks.push(`Error uploading ${file.name}`);
+        }
+      }
+      
+      fileLinks = uploadedLinks.join(', ');
+      Logger.log('All file links:', fileLinks);
+    }
     
     const rowData = [
       timestamp,
@@ -92,7 +126,7 @@ function doPost(e) {
       data.os || '',
       data.feedbackType || '',
       data.details || '',
-      screenshotsCount,
+      fileLinks || 'No files uploaded',
       data.userAgent || ''
     ];
     
@@ -167,7 +201,7 @@ function simpleTest() {
       Logger.log('⚠️ Sheet not found, creating it...');
       sheet = spreadsheet.insertSheet(SHEET_NAME);
       sheet.getRange(1, 1, 1, 7).setValues([
-        ['Timestamp', 'Name', 'Operating System', 'Feedback Type', 'Details', 'Screenshots Count', 'User Agent']
+        ['Timestamp', 'Name', 'Operating System', 'Feedback Type', 'Details', 'Screenshot Links', 'User Agent']
       ]);
       sheet.getRange(1, 1, 1, 7).setFontWeight('bold');
       Logger.log('✅ SUCCESS: Sheet created');
