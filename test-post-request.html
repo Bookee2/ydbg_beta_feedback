@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test POST Request</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #0f172a;
+            color: #f8fafc;
+        }
+        .test-section {
+            background: #1e293b;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            border: 1px solid #334155;
+        }
+        button {
+            background: #dc2626;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #ef4444;
+        }
+        .result {
+            background: #0f172a;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+        .success { border-left: 4px solid #10b981; }
+        .error { border-left: 4px solid #ef4444; }
+        .warning { border-left: 4px solid #f59e0b; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Test POST Request</h1>
+    
+    <div class="test-section">
+        <h2>Test 1: Direct POST with Response</h2>
+        <p>This will try to get a response from the Google Apps Script.</p>
+        <button onclick="testDirectPost()">Test Direct POST</button>
+        <div id="directResult" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 2: Traditional Form Submission</h2>
+        <p>This uses a traditional HTML form to test.</p>
+        <button onclick="testTraditionalForm()">Test Traditional Form</button>
+        <div id="traditionalResult" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 3: FormData Object</h2>
+        <p>This uses FormData to send the data.</p>
+        <button onclick="testFormData()">Test FormData</button>
+        <div id="formDataResult" class="result"></div>
+    </div>
+
+    <script src="config.js"></script>
+    <script>
+        const GOOGLE_SHEETS_URL = window.SLACK_CONFIG?.googleSheetsUrl || 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE';
+        
+        function logResult(elementId, message, type = 'info') {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.className = `result ${type}`;
+        }
+
+        async function testDirectPost() {
+            logResult('directResult', 'Testing direct POST...', 'info');
+            
+            try {
+                const testData = {
+                    name: 'Direct POST Test',
+                    os: 'iOS',
+                    feedbackType: 'Bug / Error',
+                    details: 'Testing direct POST request to Google Apps Script',
+                    files: [],
+                    userAgent: navigator.userAgent
+                };
+
+                console.log('Sending data:', testData);
+
+                const response = await fetch(GOOGLE_SHEETS_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(testData)
+                });
+                
+                const text = await response.text();
+                console.log('Response:', response);
+                console.log('Response text:', text);
+                
+                let result;
+                try {
+                    result = JSON.parse(text);
+                } catch {
+                    result = text;
+                }
+                
+                logResult('directResult', 
+                    `Direct POST Results:\n` +
+                    `Status: ${response.status}\n` +
+                    `Status Text: ${response.statusText}\n` +
+                    `Response: ${JSON.stringify(result, null, 2)}\n\n` +
+                    `Check your Google Sheet for a new row!`, 
+                    response.ok ? 'success' : 'error'
+                );
+            } catch (error) {
+                logResult('directResult', 
+                    `Direct POST Error:\n` +
+                    `Error: ${error.message}\n` +
+                    `This might be a CORS issue.`, 
+                    'error'
+                );
+            }
+        }
+
+        async function testTraditionalForm() {
+            logResult('traditionalResult', 'Testing traditional form...', 'info');
+            
+            try {
+                // Create a traditional form submission
+                const formData = new FormData();
+                formData.append('name', 'Traditional Form Test');
+                formData.append('os', 'iOS');
+                formData.append('feedbackType', 'Bug / Error');
+                formData.append('details', 'Testing traditional form submission');
+                formData.append('files', '[]');
+                formData.append('userAgent', navigator.userAgent);
+
+                const response = await fetch(GOOGLE_SHEETS_URL, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const text = await response.text();
+                console.log('Traditional form response:', response);
+                console.log('Traditional form response text:', text);
+                
+                logResult('traditionalResult', 
+                    `Traditional Form Results:\n` +
+                    `Status: ${response.status}\n` +
+                    `Status Text: ${response.statusText}\n` +
+                    `Response: ${text}\n\n` +
+                    `Check your Google Sheet for a new row!`, 
+                    response.ok ? 'success' : 'error'
+                );
+            } catch (error) {
+                logResult('traditionalResult', 
+                    `Traditional Form Error:\n` +
+                    `Error: ${error.message}`, 
+                    'error'
+                );
+            }
+        }
+
+        async function testFormData() {
+            logResult('formDataResult', 'Testing FormData object...', 'info');
+            
+            try {
+                const testData = {
+                    name: 'FormData Test',
+                    os: 'iOS',
+                    feedbackType: 'Bug / Error',
+                    details: 'Testing FormData object submission',
+                    files: [],
+                    userAgent: navigator.userAgent
+                };
+
+                const formData = new FormData();
+                formData.append('data', JSON.stringify(testData));
+
+                const response = await fetch(GOOGLE_SHEETS_URL, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const text = await response.text();
+                console.log('FormData response:', response);
+                console.log('FormData response text:', text);
+                
+                logResult('formDataResult', 
+                    `FormData Results:\n` +
+                    `Status: ${response.status}\n` +
+                    `Status Text: ${response.statusText}\n` +
+                    `Response: ${text}\n\n` +
+                    `Check your Google Sheet for a new row!`, 
+                    response.ok ? 'success' : 'error'
+                );
+            } catch (error) {
+                logResult('formDataResult', 
+                    `FormData Error:\n` +
+                    `Error: ${error.message}`, 
+                    'error'
+                );
+            }
+        }
+
+        // Check if config is loaded
+        if (GOOGLE_SHEETS_URL === 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE') {
+            logResult('directResult', '⚠️ Please update config.js with your Google Apps Script URL', 'warning');
+        } else {
+            logResult('directResult', `✅ Configuration loaded. URL: ${GOOGLE_SHEETS_URL}`, 'success');
+        }
+    </script>
+</body>
+</html>
