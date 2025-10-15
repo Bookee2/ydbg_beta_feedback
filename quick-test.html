@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quick Debug Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background: #1e293b; color: #f8fafc; }
+        button { background: #dc2626; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin: 5px; }
+        .result { margin-top: 10px; padding: 10px; border-radius: 5px; }
+        .success { background: #059669; }
+        .error { background: #dc2626; }
+        .info { background: #3b82f6; }
+    </style>
+</head>
+<body>
+    <h1>🔧 Quick Debug Test</h1>
+    
+    <button onclick="testGoogleSheets()">Test Google Sheets Only</button>
+    <div id="result" class="result"></div>
+
+    <script src="config.js"></script>
+    <script>
+        async function testGoogleSheets() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = 'Testing Google Sheets...';
+            resultDiv.className = 'result info';
+            
+            try {
+                const testData = {
+                    name: 'Debug Test',
+                    os: 'iOS',
+                    feedbackType: 'Debug Test',
+                    details: 'Testing Google Sheets integration',
+                    userAgent: navigator.userAgent,
+                    timestamp: new Date().toISOString()
+                };
+                
+                console.log('Sending data:', testData);
+                console.log('URL:', window.SLACK_CONFIG.googleSheetsUrl);
+                
+                const response = await fetch(window.SLACK_CONFIG.googleSheetsUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(testData)
+                });
+                
+                console.log('Response status:', response.status);
+                console.log('Response headers:', response.headers);
+                
+                const result = await response.json();
+                console.log('Response data:', result);
+                
+                if (response.ok && result.success) {
+                    resultDiv.innerHTML = '✅ Google Sheets test successful! Check your spreadsheet.';
+                    resultDiv.className = 'result success';
+                } else {
+                    resultDiv.innerHTML = `❌ Google Sheets test failed: ${result.error || response.statusText}`;
+                    resultDiv.className = 'result error';
+                }
+            } catch (error) {
+                console.error('Test error:', error);
+                resultDiv.innerHTML = `❌ Test error: ${error.message}`;
+                resultDiv.className = 'result error';
+            }
+        }
+    </script>
+</body>
+</html>

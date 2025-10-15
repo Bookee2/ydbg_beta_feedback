@@ -25,16 +25,19 @@ function doPost(e) {
     // Parse the incoming data
     const data = JSON.parse(e.postData.contents);
     
-    // Get the active sheet
-    const sheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName(SHEET_NAME);
+    // Get the spreadsheet
+    const spreadsheet = SpreadsheetApp.openById(SHEET_ID);
     
-    // If sheet doesn't exist, create it with headers
+    // Try to get the sheet, if it doesn't exist, create it
+    let sheet = spreadsheet.getSheetByName(SHEET_NAME);
+    
     if (!sheet) {
-      const newSheet = SpreadsheetApp.openById(SHEET_ID).insertSheet(SHEET_NAME);
-      newSheet.getRange(1, 1, 1, 7).setValues([
+      // Create the sheet with headers
+      sheet = spreadsheet.insertSheet(SHEET_NAME);
+      sheet.getRange(1, 1, 1, 7).setValues([
         ['Timestamp', 'Name', 'Operating System', 'Feedback Type', 'Details', 'Screenshots Count', 'User Agent']
       ]);
-      newSheet.getRange(1, 1, 1, 7).setFontWeight('bold');
+      sheet.getRange(1, 1, 1, 7).setFontWeight('bold');
     }
     
     // Prepare the row data
@@ -56,13 +59,20 @@ function doPost(e) {
     
     // Return success response
     return ContentService
-      .createTextOutput(JSON.stringify({success: true, message: 'Feedback stored successfully'}))
+      .createTextOutput(JSON.stringify({success: true, message: 'Feedback stored successfully', timestamp: timestamp}))
       .setMimeType(ContentService.MimeType.JSON);
       
   } catch (error) {
+    // Log the error for debugging
+    console.error('Google Apps Script Error:', error);
+    
     // Return error response
     return ContentService
-      .createTextOutput(JSON.stringify({success: false, error: error.toString()}))
+      .createTextOutput(JSON.stringify({
+        success: false, 
+        error: error.toString(),
+        message: 'Failed to store feedback in Google Sheets'
+      }))
       .setMimeType(ContentService.MimeType.JSON);
   }
 }
