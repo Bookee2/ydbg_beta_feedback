@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Sheets Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background: #1e293b; color: #f8fafc; }
+        .result { margin: 10px 0; padding: 10px; border-radius: 5px; }
+        .success { background: #059669; }
+        .error { background: #dc2626; }
+        .info { background: #3b82f6; }
+        button { background: #dc2626; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>🔧 Google Sheets Test</h1>
+    <p>This will test if the Google Apps Script is working correctly.</p>
+    
+    <button onclick="testGoogleSheets()">Test Google Sheets</button>
+    <div id="result" class="result"></div>
+
+    <script>
+        const GOOGLE_SHEETS_URL = 'https://script.google.com/macros/s/AKfycbzVouQj4SVc2x2ZoAm-fbAirwiloNjrC1iVlrv7xacDAhMUCajfO_zrmxgQTLgMPnl4Xg/exec';
+        
+        async function testGoogleSheets() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = 'Testing...';
+            resultDiv.className = 'result info';
+            
+            const testData = {
+                name: 'Test User',
+                os: 'iOS',
+                feedbackType: 'Test',
+                details: 'This is a test submission to verify Google Sheets integration.',
+                files: [],
+                timestamp: new Date().toISOString(),
+                userAgent: navigator.userAgent
+            };
+            
+            console.log('Testing Google Sheets with data:', testData);
+            
+            try {
+                // Try the no-cors approach first
+                const response = await fetch(GOOGLE_SHEETS_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(testData),
+                    mode: 'no-cors'
+                });
+                
+                console.log('Response received (no-cors mode)');
+                resultDiv.innerHTML = '✅ Test completed! Check your Google Sheet for a new row.';
+                resultDiv.className = 'result success';
+                
+            } catch (error) {
+                console.error('Test failed:', error);
+                resultDiv.innerHTML = `❌ Test failed: ${error.message}`;
+                resultDiv.className = 'result error';
+            }
+        }
+    </script>
+</body>
+</html>

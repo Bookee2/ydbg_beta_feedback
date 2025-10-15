@@ -136,9 +136,20 @@ async function sendToGoogleSheets(data) {
         return;
     }
     
-    try {
-        // Try multiple approaches to bypass CORS
-        const approaches = [
+       try {
+           console.log('Sending to Google Sheets:', {
+               url: GOOGLE_SHEETS_URL,
+               data: {
+                   name: data.name,
+                   os: data.os,
+                   feedbackType: data.feedbackType,
+                   details: data.details.substring(0, 50) + '...',
+                   filesCount: data.files ? data.files.length : 0
+               }
+           });
+           
+           // Try multiple approaches to bypass CORS
+           const approaches = [
             // Approach 1: Direct with no-cors
             {
                 name: 'no-cors',
@@ -178,19 +189,24 @@ async function sendToGoogleSheets(data) {
                 const url = approach.url || GOOGLE_SHEETS_URL;
                 const response = await fetch(url, approach.options);
                 
-                if (approach.name === 'no-cors') {
-                    // With no-cors, we can't read the response, but if no error is thrown, it likely worked
-                    console.log('Data sent to Google Sheets (no-cors mode)');
-                    return;
-                }
-                
-                if (response.ok) {
-                    const result = await response.json();
-                    if (result.success) {
-                        console.log('Data sent to Google Sheets successfully');
-                        return;
-                    }
-                }
+                   if (approach.name === 'no-cors') {
+                       // With no-cors, we can't read the response, but if no error is thrown, it likely worked
+                       console.log('✅ Data sent to Google Sheets (no-cors mode)');
+                       return;
+                   }
+
+                   if (response.ok) {
+                       const result = await response.json();
+                       console.log('Google Sheets response:', result);
+                       if (result.success) {
+                           console.log('✅ Data sent to Google Sheets successfully');
+                           return;
+                       } else {
+                           console.warn('Google Sheets returned error:', result.error || result.message);
+                       }
+                   } else {
+                       console.warn(`Google Sheets ${approach.name} approach failed with status:`, response.status);
+                   }
             } catch (error) {
                 console.log(`${approach.name} approach failed:`, error.message);
                 continue; // Try next approach
@@ -255,16 +271,27 @@ async function sendToSlack(data) {
             ]
         };
         
-        // Add file attachments if any
-        if (data.files && data.files.length > 0) {
-            slackMessage.blocks.push({
-                type: "section",
-                text: {
-                    type: "mrkdwn",
-                    text: `*Screenshots:* ${data.files.length} file(s) attached`
-                }
-            });
-        }
+           // Add file attachments if any
+           if (data.files && data.files.length > 0) {
+               slackMessage.blocks.push({
+                   type: "section",
+                   text: {
+                       type: "mrkdwn",
+                       text: `*Screenshots:* ${data.files.length} file(s) attached`
+                   }
+               });
+               
+               // Add file details
+               data.files.forEach((file, index) => {
+                   slackMessage.blocks.push({
+                       type: "section",
+                       text: {
+                           type: "mrkdwn",
+                           text: `📎 *File ${index + 1}:* ${file.name} (${(file.size / 1024).toFixed(1)} KB)`
+                       }
+                   });
+               });
+           }
         
         // Try multiple approaches to bypass CORS
         const approaches = [
