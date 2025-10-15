@@ -128,16 +128,19 @@ function validateForm() {
     const feedbackType = document.getElementById('feedbackType').value;
     const details = document.getElementById('details').value.trim();
     
+    console.log('Validating form:', { name, os, feedbackType, detailsLength: details.length });
+    
     if (!name || !os || !feedbackType || !details) {
         alert('Please fill in all required fields.');
         return false;
     }
     
     if (details.length < 10) {
-        alert('Please provide more detailed feedback (at least 10 characters).');
+        alert(`Please provide more detailed feedback. You currently have ${details.length} characters, but need at least 10 characters.`);
         return false;
     }
     
+    console.log('Form validation passed');
     return true;
 }
 
