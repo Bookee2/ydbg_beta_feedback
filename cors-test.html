@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CORS Workaround Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background: #1e293b; color: #f8fafc; }
+        button { background: #dc2626; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin: 5px; }
+        .result { margin-top: 10px; padding: 10px; border-radius: 5px; }
+        .success { background: #059669; }
+        .error { background: #dc2626; }
+        .info { background: #3b82f6; }
+    </style>
+</head>
+<body>
+    <h1>🔧 CORS Workaround Test</h1>
+    
+    <button onclick="testWithNoCors()">Test with no-cors mode</button>
+    <button onclick="testWithProxy()">Test with proxy approach</button>
+    <div id="result" class="result"></div>
+
+    <script src="config.js"></script>
+    <script>
+        async function testWithNoCors() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = 'Testing with no-cors mode...';
+            resultDiv.className = 'result info';
+            
+            try {
+                const testData = {
+                    name: 'CORS Test',
+                    os: 'iOS',
+                    feedbackType: 'CORS Test',
+                    details: 'Testing CORS workaround',
+                    userAgent: navigator.userAgent,
+                    timestamp: new Date().toISOString()
+                };
+                
+                const response = await fetch(window.SLACK_CONFIG.googleSheetsUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(testData),
+                    mode: 'no-cors'
+                });
+                
+                // With no-cors, we can't read the response, but if no error is thrown, it likely worked
+                resultDiv.innerHTML = '✅ No-cors request sent (check your Google Sheet to verify)';
+                resultDiv.className = 'result success';
+                
+            } catch (error) {
+                resultDiv.innerHTML = `❌ No-cors test failed: ${error.message}`;
+                resultDiv.className = 'result error';
+            }
+        }
+
+        async function testWithProxy() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = 'Testing with proxy approach...';
+            resultDiv.className = 'result info';
+            
+            try {
+                // Use a CORS proxy (this is just for testing)
+                const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
+                const testData = {
+                    name: 'Proxy Test',
+                    os: 'iOS',
+                    feedbackType: 'Proxy Test',
+                    details: 'Testing proxy approach',
+                    userAgent: navigator.userAgent,
+                    timestamp: new Date().toISOString()
+                };
+                
+                const response = await fetch(proxyUrl + window.SLACK_CONFIG.googleSheetsUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify(testData)
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok && result.success) {
+                    resultDiv.innerHTML = '✅ Proxy test successful!';
+                    resultDiv.className = 'result success';
+                } else {
+                    resultDiv.innerHTML = `❌ Proxy test failed: ${result.error || response.statusText}`;
+                    resultDiv.className = 'result error';
+                }
+                
+            } catch (error) {
+                resultDiv.innerHTML = `❌ Proxy test error: ${error.message}`;
+                resultDiv.className = 'result error';
+            }
+        }
+    </script>
+</body>
+</html>

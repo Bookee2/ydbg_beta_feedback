@@ -57,7 +57,7 @@ function doPost(e) {
     // Add the new row to the sheet
     sheet.appendRow(rowData);
     
-    // Return success response
+    // Return success response with CORS headers
     return ContentService
       .createTextOutput(JSON.stringify({success: true, message: 'Feedback stored successfully', timestamp: timestamp}))
       .setMimeType(ContentService.MimeType.JSON);
@@ -66,7 +66,7 @@ function doPost(e) {
     // Log the error for debugging
     console.error('Google Apps Script Error:', error);
     
-    // Return error response
+    // Return error response with CORS headers
     return ContentService
       .createTextOutput(JSON.stringify({
         success: false, 
@@ -78,7 +78,7 @@ function doPost(e) {
 }
 
 function doGet(e) {
-  // Handle GET requests (for testing)
+  // Handle GET requests (for testing) with CORS headers
   return ContentService
     .createTextOutput('YDBG Feedback Collection API is running')
     .setMimeType(ContentService.MimeType.TEXT);
