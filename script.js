@@ -29,7 +29,11 @@ const errorMessage = document.getElementById('errorMessage');
 
 // Form submission handler
 form.addEventListener('submit', async (e) => {
+    console.log('Form submission handler called');
     e.preventDefault();
+    e.stopPropagation();
+    
+    console.log('Prevented default form submission');
     
     // Reload config in case it wasn't loaded initially
     loadConfig();
