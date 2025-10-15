@@ -61,44 +61,23 @@ form.addEventListener('submit', async (e) => {
         
         for (const file of files) {
             if (file.size > 0) {
-                try {
-                    // Try to upload file to hosting service
-                    const uploadUrl = await uploadFileToHost(file);
-                    uploadedFiles.push({
-                        name: file.name,
-                        size: file.size,
-                        url: uploadUrl
-                    });
-                    
-                    // Also keep base64 for backup
-                    const base64 = await fileToBase64(file);
-                    fileData.push({
-                        name: file.name,
-                        type: file.type,
-                        size: file.size,
-                        data: base64
-                    });
-                } catch (error) {
-                    console.warn('Could not upload file:', file.name, error);
-                    
-                    // Fallback: Convert to base64 and create data URL
-                    const base64 = await fileToBase64(file);
-                    const dataUrl = `data:${file.type};base64,${base64.split(',')[1]}`;
-                    
-                    uploadedFiles.push({
-                        name: file.name,
-                        size: file.size,
-                        url: dataUrl,
-                        isDataUrl: true
-                    });
-                    
-                    fileData.push({
-                        name: file.name,
-                        type: file.type,
-                        size: file.size,
-                        data: base64
-                    });
-                }
+                // Convert to base64 and create data URL for direct embedding
+                const base64 = await fileToBase64(file);
+                const dataUrl = `data:${file.type};base64,${base64.split(',')[1]}`;
+                
+                uploadedFiles.push({
+                    name: file.name,
+                    size: file.size,
+                    url: dataUrl,
+                    isDataUrl: true
+                });
+                
+                fileData.push({
+                    name: file.name,
+                    type: file.type,
+                    size: file.size,
+                    data: base64
+                });
             }
         }
         
@@ -399,44 +378,23 @@ async function sendToSlack(data) {
                    }
                });
                
-               // Add file details with download links
+               // Add file details and embed images
                data.uploadedFiles.forEach((file, index) => {
-                   if (file.isDataUrl) {
-                       // For data URLs, we'll include the image directly in Slack
-                       slackMessage.blocks.push({
-                           type: "section",
-                           text: {
-                               type: "mrkdwn",
-                               text: `📎 *File ${index + 1}:* ${file.name} (${(file.size / 1024).toFixed(1)} KB) - Embedded`
-                           }
-                       });
-                       
-                       // Add image block for data URL
-                       if (file.url.startsWith('data:image/')) {
-                           slackMessage.blocks.push({
-                               type: "image",
-                               image_url: file.url,
-                               alt_text: file.name
-                           });
+                   slackMessage.blocks.push({
+                       type: "section",
+                       text: {
+                           type: "mrkdwn",
+                           text: `📎 *File ${index + 1}:* ${file.name} (${(file.size / 1024).toFixed(1)} KB)`
                        }
-                   } else {
-                       // Regular download link
+                   });
+                   
+                   // Add image block for data URL
+                   if (file.url.startsWith('data:image/')) {
                        slackMessage.blocks.push({
-                           type: "section",
-                           text: {
-                               type: "mrkdwn",
-                               text: `📎 *File ${index + 1}:* <${file.url}|${file.name}> (${(file.size / 1024).toFixed(1)} KB)`
-                           }
+                           type: "image",
+                           image_url: file.url,
+                           alt_text: file.name
                        });
-                   }
-               });
-           } else if (data.files && data.files.length > 0) {
-               // Fallback if upload failed
-               slackMessage.blocks.push({
-                   type: "section",
-                   text: {
-                       type: "mrkdwn",
-                       text: `*📎 Screenshots:* ${data.files.length} file(s) attached (upload failed, files available in Google Sheets)`
                    }
                });
            }

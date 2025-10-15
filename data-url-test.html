@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data URL Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background: #1e293b; color: #f8fafc; }
+        .result { margin: 10px 0; padding: 10px; border-radius: 5px; }
+        .success { background: #059669; }
+        .error { background: #dc2626; }
+        .info { background: #3b82f6; }
+        button { background: #dc2626; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; margin: 10px 0; }
+        input[type="file"] { margin: 10px 0; }
+        img { max-width: 300px; max-height: 300px; border: 2px solid #dc2626; border-radius: 5px; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <h1>📎 Data URL Test</h1>
+    <p>Test converting files to data URLs for direct embedding in Slack.</p>
+    
+    <input type="file" id="fileInput" multiple accept="image/*">
+    <button onclick="testDataUrls()">Test Data URLs</button>
+    
+    <div id="result" class="result"></div>
+    <div id="preview" class="result"></div>
+
+    <script>
+        // Convert file to base64
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = error => reject(error);
+            });
+        }
+        
+        async function testDataUrls() {
+            const fileInput = document.getElementById('fileInput');
+            const resultDiv = document.getElementById('result');
+            const previewDiv = document.getElementById('preview');
+            
+            if (fileInput.files.length === 0) {
+                resultDiv.innerHTML = 'Please select a file first.';
+                resultDiv.className = 'result error';
+                return;
+            }
+            
+            resultDiv.innerHTML = 'Converting files to data URLs...';
+            resultDiv.className = 'result info';
+            previewDiv.innerHTML = '';
+            
+            const files = Array.from(fileInput.files);
+            let previewHtml = '<h3>Preview:</h3>';
+            
+            for (const file of files) {
+                try {
+                    console.log(`Converting ${file.name}...`);
+                    const base64 = await fileToBase64(file);
+                    const dataUrl = `data:${file.type};base64,${base64.split(',')[1]}`;
+                    
+                    console.log(`✅ ${file.name} converted successfully`);
+                    console.log(`Data URL length: ${dataUrl.length} characters`);
+                    
+                    if (file.type.startsWith('image/')) {
+                        previewHtml += `<p><strong>${file.name}</strong> (${(file.size / 1024).toFixed(1)} KB)</p>`;
+                        previewHtml += `<img src="${dataUrl}" alt="${file.name}">`;
+                    } else {
+                        previewHtml += `<p><strong>${file.name}</strong> (${(file.size / 1024).toFixed(1)} KB) - Non-image file</p>`;
+                    }
+                } catch (error) {
+                    console.error(`Failed to convert ${file.name}:`, error);
+                    previewHtml += `<p style="color: #f87171;">❌ ${file.name} - Conversion failed</p>`;
+                }
+            }
+            
+            resultDiv.innerHTML = `✅ ${files.length} file(s) converted to data URLs successfully!`;
+            resultDiv.className = 'result success';
+            previewDiv.innerHTML = previewHtml;
+            previewDiv.className = 'result info';
+        }
+    </script>
+</body>
+</html>
