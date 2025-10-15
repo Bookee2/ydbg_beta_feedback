@@ -18,7 +18,7 @@
 const SHEET_ID = '19sspNrLcvU68k0BYurY5RjedZRE1iHMo-6ZIYNbBXIU';
 
 // Sheet name (you can change this if needed)
-const SHEET_NAME = 'YDBG BetaFeedback';
+const SHEET_NAME = 'YDBG Beta Feedback';
 
 function doPost(e) {
   try {
@@ -85,52 +85,49 @@ function doGet(e) {
 }
 
 /**
- * Test function to verify the setup - run this in Google Apps Script
+ * Simple test function - run this in Google Apps Script
+ * This function tests the Google Sheets integration
  */
-function testSetup() {
+function testGoogleSheets() {
   try {
-    console.log('Testing Google Apps Script setup...');
+    console.log('🧪 Testing Google Sheets integration...');
     
-    // Test 1: Check if we can access the spreadsheet
+    // Test 1: Access the spreadsheet
     const spreadsheet = SpreadsheetApp.openById(SHEET_ID);
-    console.log('✅ Spreadsheet accessed successfully');
-    console.log('Spreadsheet name:', spreadsheet.getName());
+    console.log('✅ Spreadsheet accessed:', spreadsheet.getName());
     
-    // Test 2: Check if the sheet exists
+    // Test 2: Get or create the sheet
     let sheet = spreadsheet.getSheetByName(SHEET_NAME);
-    if (sheet) {
-      console.log('✅ Sheet found:', sheet.getName());
-      console.log('Last row:', sheet.getLastRow());
-    } else {
-      console.log('⚠️ Sheet not found, will be created on first submission');
-    }
-    
-    // Test 3: Try to add a test row
-    const testData = [
-      new Date().toLocaleString(),
-      'Test User',
-      'iOS',
-      'Test',
-      'This is a test row from Google Apps Script',
-      0,
-      'Google Apps Script Test'
-    ];
-    
     if (!sheet) {
+      console.log('📝 Creating new sheet:', SHEET_NAME);
       sheet = spreadsheet.insertSheet(SHEET_NAME);
       sheet.getRange(1, 1, 1, 7).setValues([
         ['Timestamp', 'Name', 'Operating System', 'Feedback Type', 'Details', 'Screenshots Count', 'User Agent']
       ]);
       sheet.getRange(1, 1, 1, 7).setFontWeight('bold');
+    } else {
+      console.log('✅ Sheet found:', sheet.getName());
     }
     
-    sheet.appendRow(testData);
-    console.log('✅ Test row added successfully');
+    // Test 3: Add a test row
+    const testRow = [
+      new Date().toLocaleString(),
+      'Test User',
+      'iOS', 
+      'Test',
+      'This is a test from Google Apps Script',
+      0,
+      'Google Apps Script Test'
+    ];
     
-    return 'All tests passed!';
+    sheet.appendRow(testRow);
+    console.log('✅ Test row added successfully!');
+    console.log('📊 Total rows now:', sheet.getLastRow());
+    
+    return 'SUCCESS: All tests passed!';
     
   } catch (error) {
-    console.error('❌ Setup test failed:', error);
-    return 'Test failed: ' + error.toString();
+    console.error('❌ Test failed:', error.toString());
+    return 'ERROR: ' + error.toString();
   }
 }
