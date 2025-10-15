@@ -261,12 +261,19 @@ async function sendToGoogleSheets(data) {
             }
         });
 
-        // Use no-cors mode since we know the script works
-        console.log('Using no-cors mode for Google Sheets...');
+        // Use form data format since we know this works
+        console.log('Using form data format for Google Sheets...');
+        const formData = new FormData();
+        formData.append('name', data.name || '');
+        formData.append('os', data.os || '');
+        formData.append('feedbackType', data.feedbackType || '');
+        formData.append('details', data.details || '');
+        formData.append('files', JSON.stringify(data.files || []));
+        formData.append('userAgent', data.userAgent || navigator.userAgent);
+
         const response = await fetch(GOOGLE_SHEETS_URL, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data),
+            body: formData,
             mode: 'no-cors'
         });
 
