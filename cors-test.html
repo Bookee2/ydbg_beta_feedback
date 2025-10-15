@@ -3,100 +3,218 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CORS Workaround Test</title>
+    <title>CORS Test for Google Apps Script</title>
     <style>
-        body { font-family: Arial, sans-serif; padding: 20px; background: #1e293b; color: #f8fafc; }
-        button { background: #dc2626; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin: 5px; }
-        .result { margin-top: 10px; padding: 10px; border-radius: 5px; }
-        .success { background: #059669; }
-        .error { background: #dc2626; }
-        .info { background: #3b82f6; }
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #0f172a;
+            color: #f8fafc;
+        }
+        .test-section {
+            background: #1e293b;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            border: 1px solid #334155;
+        }
+        button {
+            background: #dc2626;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #ef4444;
+        }
+        .result {
+            background: #0f172a;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+        .success { border-left: 4px solid #10b981; }
+        .error { border-left: 4px solid #ef4444; }
+        .warning { border-left: 4px solid #f59e0b; }
     </style>
 </head>
 <body>
-    <h1>🔧 CORS Workaround Test</h1>
+    <h1>🔧 CORS Test for Google Apps Script</h1>
     
-    <button onclick="testWithNoCors()">Test with no-cors mode</button>
-    <button onclick="testWithProxy()">Test with proxy approach</button>
-    <div id="result" class="result"></div>
+    <div class="test-section">
+        <h2>Step 1: Test OPTIONS Request (CORS Preflight)</h2>
+        <p>This tests if the Google Apps Script handles CORS preflight requests.</p>
+        <button onclick="testOptions()">Test OPTIONS Request</button>
+        <div id="optionsResult" class="result"></div>
+    </div>
 
-    <script src="config.js"></script>
+    <div class="test-section">
+        <h2>Step 2: Test GET Request</h2>
+        <p>This tests if the Google Apps Script responds to GET requests.</p>
+        <button onclick="testGet()">Test GET Request</button>
+        <div id="getResult" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Step 3: Test POST Request</h2>
+        <p>This tests if the Google Apps Script accepts POST requests with CORS.</p>
+        <button onclick="testPost()">Test POST Request</button>
+        <div id="postResult" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Step 4: Test Full Form Data</h2>
+        <p>This tests the actual form data that would be sent.</p>
+        <button onclick="testFormData()">Test Form Data</button>
+        <div id="formResult" class="result"></div>
+    </div>
+
     <script>
-        async function testWithNoCors() {
-            const resultDiv = document.getElementById('result');
-            resultDiv.innerHTML = 'Testing with no-cors mode...';
-            resultDiv.className = 'result info';
+        // Load configuration
+        const GOOGLE_SHEETS_URL = window.SLACK_CONFIG?.googleSheetsUrl || 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE';
+        
+        function logResult(elementId, message, type = 'info') {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.className = `result ${type}`;
+        }
+
+        async function testOptions() {
+            logResult('optionsResult', 'Testing OPTIONS request...', 'info');
+            
+            try {
+                const response = await fetch(GOOGLE_SHEETS_URL, {
+                    method: 'OPTIONS',
+                    headers: {
+                        'Access-Control-Request-Method': 'POST',
+                        'Access-Control-Request-Headers': 'Content-Type'
+                    }
+                });
+                
+                logResult('optionsResult', 
+                    `OPTIONS Response:\n` +
+                    `Status: ${response.status}\n` +
+                    `Status Text: ${response.statusText}\n` +
+                    `Headers: ${JSON.stringify([...response.headers.entries()], null, 2)}\n` +
+                    `Response: ${await response.text()}`, 
+                    response.ok ? 'success' : 'error'
+                );
+            } catch (error) {
+                logResult('optionsResult', `OPTIONS Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testGet() {
+            logResult('getResult', 'Testing GET request...', 'info');
+            
+            try {
+                const response = await fetch(GOOGLE_SHEETS_URL, {
+                    method: 'GET'
+                });
+                
+                const text = await response.text();
+                
+                logResult('getResult', 
+                    `GET Response:\n` +
+                    `Status: ${response.status}\n` +
+                    `Status Text: ${response.statusText}\n` +
+                    `Response: ${text}`, 
+                    response.ok ? 'success' : 'error'
+                );
+            } catch (error) {
+                logResult('getResult', `GET Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testPost() {
+            logResult('postResult', 'Testing POST request...', 'info');
             
             try {
                 const testData = {
                     name: 'CORS Test',
-                    os: 'iOS',
-                    feedbackType: 'CORS Test',
-                    details: 'Testing CORS workaround',
-                    userAgent: navigator.userAgent,
-                    timestamp: new Date().toISOString()
+                    os: 'Test',
+                    feedbackType: 'Test',
+                    details: 'Testing CORS functionality',
+                    files: []
                 };
-                
-                const response = await fetch(window.SLACK_CONFIG.googleSheetsUrl, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(testData),
-                    mode: 'no-cors'
-                });
-                
-                // With no-cors, we can't read the response, but if no error is thrown, it likely worked
-                resultDiv.innerHTML = '✅ No-cors request sent (check your Google Sheet to verify)';
-                resultDiv.className = 'result success';
-                
-            } catch (error) {
-                resultDiv.innerHTML = `❌ No-cors test failed: ${error.message}`;
-                resultDiv.className = 'result error';
-            }
-        }
 
-        async function testWithProxy() {
-            const resultDiv = document.getElementById('result');
-            resultDiv.innerHTML = 'Testing with proxy approach...';
-            resultDiv.className = 'result info';
-            
-            try {
-                // Use a CORS proxy (this is just for testing)
-                const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
-                const testData = {
-                    name: 'Proxy Test',
-                    os: 'iOS',
-                    feedbackType: 'Proxy Test',
-                    details: 'Testing proxy approach',
-                    userAgent: navigator.userAgent,
-                    timestamp: new Date().toISOString()
-                };
-                
-                const response = await fetch(proxyUrl + window.SLACK_CONFIG.googleSheetsUrl, {
+                const response = await fetch(GOOGLE_SHEETS_URL, {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json',
-                        'X-Requested-With': 'XMLHttpRequest'
+                        'Content-Type': 'application/json'
                     },
                     body: JSON.stringify(testData)
                 });
                 
-                const result = await response.json();
+                const text = await response.text();
                 
-                if (response.ok && result.success) {
-                    resultDiv.innerHTML = '✅ Proxy test successful!';
-                    resultDiv.className = 'result success';
-                } else {
-                    resultDiv.innerHTML = `❌ Proxy test failed: ${result.error || response.statusText}`;
-                    resultDiv.className = 'result error';
-                }
-                
+                logResult('postResult', 
+                    `POST Response:\n` +
+                    `Status: ${response.status}\n` +
+                    `Status Text: ${response.statusText}\n` +
+                    `Response: ${text}`, 
+                    response.ok ? 'success' : 'error'
+                );
             } catch (error) {
-                resultDiv.innerHTML = `❌ Proxy test error: ${error.message}`;
-                resultDiv.className = 'result error';
+                logResult('postResult', `POST Error: ${error.message}`, 'error');
             }
         }
+
+        async function testFormData() {
+            logResult('formResult', 'Testing form data...', 'info');
+            
+            try {
+                const formData = {
+                    name: 'Kris Brown',
+                    os: 'iOS',
+                    feedbackType: 'Bug / Error',
+                    details: 'Testing CORS with actual form data',
+                    files: [],
+                    userAgent: navigator.userAgent
+                };
+
+                const response = await fetch(GOOGLE_SHEETS_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                const text = await response.text();
+                let result;
+                
+                try {
+                    result = JSON.parse(text);
+                } catch {
+                    result = text;
+                }
+                
+                logResult('formResult', 
+                    `Form Data Response:\n` +
+                    `Status: ${response.status}\n` +
+                    `Status Text: ${response.statusText}\n` +
+                    `Response: ${JSON.stringify(result, null, 2)}`, 
+                    response.ok ? 'success' : 'error'
+                );
+            } catch (error) {
+                logResult('formResult', `Form Data Error: ${error.message}`, 'error');
+            }
+        }
+
+        // Check if config is loaded
+        if (GOOGLE_SHEETS_URL === 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE') {
+            logResult('optionsResult', '⚠️ Please update config.js with your Google Apps Script URL', 'warning');
+        }
     </script>
+    
+    <script src="config.js"></script>
 </body>
 </html>
