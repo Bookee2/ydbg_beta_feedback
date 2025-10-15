@@ -62,10 +62,8 @@ function doPost(e) {
       .createTextOutput(JSON.stringify({success: true, message: 'Feedback stored successfully', timestamp: timestamp}))
       .setMimeType(ContentService.MimeType.JSON);
     
-    // Add CORS headers
-    output.setHeader("Access-Control-Allow-Origin", "*");
-    output.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS");
-    output.setHeader("Access-Control-Allow-Headers", "Content-Type");
+    // Note: Google Apps Script doesn't support setHeader method
+    // CORS is handled by the platform automatically for web apps
     
     return output;
       
@@ -73,7 +71,7 @@ function doPost(e) {
     // Log the error for debugging
     console.error('Google Apps Script Error:', error);
     
-    // Return error response with CORS headers
+    // Return error response
     const errorOutput = ContentService
       .createTextOutput(JSON.stringify({
         success: false, 
@@ -82,25 +80,21 @@ function doPost(e) {
       }))
       .setMimeType(ContentService.MimeType.JSON);
     
-    // Add CORS headers
-    errorOutput.setHeader("Access-Control-Allow-Origin", "*");
-    errorOutput.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS");
-    errorOutput.setHeader("Access-Control-Allow-Headers", "Content-Type");
+    // Note: Google Apps Script doesn't support setHeader method
+    // CORS is handled by the platform automatically for web apps
     
     return errorOutput;
   }
 }
 
 function doGet(e) {
-  // Handle GET requests (for testing) with CORS headers
+  // Handle GET requests (for testing)
   const output = ContentService
     .createTextOutput('YDBG Feedback Collection API is running')
     .setMimeType(ContentService.MimeType.TEXT);
   
-  // Add CORS headers
-  output.setHeader("Access-Control-Allow-Origin", "*");
-  output.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS");
-  output.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  // Note: Google Apps Script doesn't support setHeader method
+  // CORS is handled by the platform automatically for web apps
   
   return output;
 }
@@ -111,10 +105,8 @@ function doOptions(e) {
     .createTextOutput('')
     .setMimeType(ContentService.MimeType.TEXT);
   
-  // Add CORS headers
-  output.setHeader("Access-Control-Allow-Origin", "*");
-  output.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS");
-  output.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  // Note: Google Apps Script doesn't support setHeader method
+  // CORS is handled by the platform automatically for web apps
   
   return output;
 }
