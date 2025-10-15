@@ -84,6 +84,12 @@ form.addEventListener('submit', async (e) => {
         feedbackData.files = fileData;
         feedbackData.uploadedFiles = uploadedFiles;
         
+        console.log('Final feedback data:', {
+            files: feedbackData.files.length,
+            uploadedFiles: feedbackData.uploadedFiles.length,
+            uploadedFilesData: feedbackData.uploadedFiles
+        });
+        
         // Send to both Slack and Google Sheets
         const results = await Promise.allSettled([
             sendToSlack(feedbackData),
@@ -453,8 +459,10 @@ async function sendToSlack(data) {
                        
                        // Send files separately if any
                        if (data.uploadedFiles && data.uploadedFiles.length > 0) {
-                           console.log('Sending files separately...');
+                           console.log('Sending files separately...', data.uploadedFiles);
                            await sendFilesToSlack(data.uploadedFiles);
+                       } else {
+                           console.log('No files to send separately');
                        }
                        
                        return;
@@ -475,9 +483,11 @@ async function sendToSlack(data) {
 
 // Send files separately to Slack
 async function sendFilesToSlack(files) {
+    console.log(`sendFilesToSlack called with ${files.length} files:`, files);
+    
     for (const file of files) {
         try {
-            console.log(`Sending file: ${file.name}`);
+            console.log(`Processing file: ${file.name}`, file);
             
             const fileMessage = {
                 text: `📎 Screenshot: ${file.name}`,
@@ -494,12 +504,17 @@ async function sendFilesToSlack(files) {
             
             // Add image if it's a data URL
             if (file.url.startsWith('data:image/')) {
+                console.log(`Adding image block for ${file.name}`);
                 fileMessage.blocks.push({
                     type: "image",
                     image_url: file.url,
                     alt_text: file.name
                 });
+            } else {
+                console.log(`File ${file.name} is not a data URL:`, file.url);
             }
+            
+            console.log(`Sending file message for ${file.name}:`, fileMessage);
             
             // Send file message
             const response = await fetch(SLACK_WEBHOOK_URL, {
