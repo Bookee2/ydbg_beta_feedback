@@ -26,28 +26,72 @@ body {
 
 /* Header */
 header {
-    background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
-    color: white;
+    background: #1e293b;
+    color: #f8fafc;
     padding: 30px;
     position: relative;
     display: flex;
     align-items: center;
-    gap: 20px;
+    gap: 25px;
+    border-bottom: 2px solid #334155;
 }
 
 .logo-container {
     flex-shrink: 0;
+    position: relative;
+    padding: 15px;
+    border-radius: 15px;
+    background: linear-gradient(45deg, #dc2626, #ef4444, #dc2626);
+    background-size: 200% 200%;
+    animation: ledGlow 3s ease-in-out infinite;
+    box-shadow: 0 0 20px rgba(220, 38, 38, 0.3);
+}
+
+.logo-container::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    background: linear-gradient(45deg, #dc2626, #ef4444, #dc2626, #991b1b);
+    background-size: 400% 400%;
+    border-radius: 17px;
+    z-index: -1;
+    animation: ledStrip 2s linear infinite;
 }
 
 .logo {
-    height: 80px;
+    height: 70px;
     width: auto;
-    filter: brightness(0) invert(1);
-    transition: transform 0.3s ease;
+    display: block;
+    filter: brightness(1.1) contrast(1.1);
+    transition: all 0.3s ease;
 }
 
 .logo:hover {
     transform: scale(1.05);
+    filter: brightness(1.2) contrast(1.2);
+}
+
+@keyframes ledGlow {
+    0%, 100% {
+        background-position: 0% 50%;
+        box-shadow: 0 0 20px rgba(220, 38, 38, 0.3);
+    }
+    50% {
+        background-position: 100% 50%;
+        box-shadow: 0 0 30px rgba(220, 38, 38, 0.5);
+    }
+}
+
+@keyframes ledStrip {
+    0% {
+        background-position: 0% 50%;
+    }
+    100% {
+        background-position: 100% 50%;
+    }
 }
 
 .header-content {
@@ -59,14 +103,16 @@ header h1 {
     font-weight: 800;
     margin-bottom: 10px;
     letter-spacing: -0.5px;
+    color: #f8fafc;
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .subtitle {
     font-size: 1.2rem;
-    opacity: 0.95;
+    opacity: 0.9;
     line-height: 1.7;
     font-weight: 400;
+    color: #cbd5e1;
 }
 
 /* Form styles */
@@ -234,7 +280,11 @@ header h1 {
         padding: 25px 20px;
         flex-direction: column;
         text-align: center;
-        gap: 15px;
+        gap: 20px;
+    }
+    
+    .logo-container {
+        padding: 12px;
     }
     
     .logo {
