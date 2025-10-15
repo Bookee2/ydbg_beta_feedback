@@ -450,7 +450,16 @@ async function sendToSlack(data) {
                 
                 if (approach.name === 'no-cors') {
                     // With no-cors, we can't read the response, but if no error is thrown, it likely worked
-                    console.log('Data sent to Slack (no-cors mode)');
+                    console.log('✅ Main message sent to Slack (no-cors mode)');
+                    
+                    // Send files separately if any
+                    if (data.uploadedFiles && data.uploadedFiles.length > 0) {
+                        console.log('Sending files separately...', data.uploadedFiles);
+                        await sendFilesToSlack(data.uploadedFiles);
+                    } else {
+                        console.log('No files to send separately');
+                    }
+                    
                     return;
                 }
                 
