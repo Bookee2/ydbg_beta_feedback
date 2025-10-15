@@ -58,37 +58,65 @@ function doPost(e) {
     sheet.appendRow(rowData);
     
     // Return success response with CORS headers
-    return ContentService
+    const output = ContentService
       .createTextOutput(JSON.stringify({success: true, message: 'Feedback stored successfully', timestamp: timestamp}))
       .setMimeType(ContentService.MimeType.JSON);
+    
+    // Add CORS headers
+    output.setHeader("Access-Control-Allow-Origin", "*");
+    output.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS");
+    output.setHeader("Access-Control-Allow-Headers", "Content-Type");
+    
+    return output;
       
   } catch (error) {
     // Log the error for debugging
     console.error('Google Apps Script Error:', error);
     
     // Return error response with CORS headers
-    return ContentService
+    const errorOutput = ContentService
       .createTextOutput(JSON.stringify({
         success: false, 
         error: error.toString(),
         message: 'Failed to store feedback in Google Sheets'
       }))
       .setMimeType(ContentService.MimeType.JSON);
+    
+    // Add CORS headers
+    errorOutput.setHeader("Access-Control-Allow-Origin", "*");
+    errorOutput.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS");
+    errorOutput.setHeader("Access-Control-Allow-Headers", "Content-Type");
+    
+    return errorOutput;
   }
 }
 
 function doGet(e) {
   // Handle GET requests (for testing) with CORS headers
-  return ContentService
+  const output = ContentService
     .createTextOutput('YDBG Feedback Collection API is running')
     .setMimeType(ContentService.MimeType.TEXT);
+  
+  // Add CORS headers
+  output.setHeader("Access-Control-Allow-Origin", "*");
+  output.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS");
+  output.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  
+  return output;
 }
 
 function doOptions(e) {
   // Handle OPTIONS requests for CORS preflight
-  return ContentService
+  const output = ContentService
     .createTextOutput('')
     .setMimeType(ContentService.MimeType.TEXT);
+  
+  // Add CORS headers
+  output.setHeader("Access-Control-Allow-Origin", "*");
+  output.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS");
+  output.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  
+  return output;
 }
 
 /**
