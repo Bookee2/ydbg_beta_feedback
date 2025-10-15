@@ -295,6 +295,7 @@ async function sendToGoogleSheets(data) {
                    if (approach.name === 'no-cors') {
                        // With no-cors, we can't read the response, but if no error is thrown, it likely worked
                        console.log('✅ Data sent to Google Sheets (no-cors mode)');
+                       console.log('Note: With no-cors mode, we cannot verify if the data was actually stored');
                        return;
                    }
 
@@ -444,19 +445,8 @@ async function sendToSlack(data) {
                     // With no-cors, we can't read the response, but if no error is thrown, it likely worked
                     console.log('✅ Main message sent to Slack (no-cors mode)');
                     
-                    // Send files separately if any
-                    console.log('Checking for files to send...', {
-                        hasUploadedFiles: !!data.uploadedFiles,
-                        uploadedFilesLength: data.uploadedFiles ? data.uploadedFiles.length : 0,
-                        uploadedFiles: data.uploadedFiles
-                    });
-                    
-                    if (data.uploadedFiles && data.uploadedFiles.length > 0) {
-                        console.log('Sending files separately...', data.uploadedFiles);
-                        await sendFilesToSlack(data.uploadedFiles);
-                    } else {
-                        console.log('No files to send separately');
-                    }
+                    // Files are stored in Google Sheets, no need to send separate messages
+                    console.log('Files will be stored in Google Sheets');
                     
                     return;
                 }
@@ -464,13 +454,8 @@ async function sendToSlack(data) {
                    if (response.ok) {
                        console.log('✅ Main message sent to Slack successfully');
                        
-                       // Send files separately if any
-                       if (data.uploadedFiles && data.uploadedFiles.length > 0) {
-                           console.log('Sending files separately...', data.uploadedFiles);
-                           await sendFilesToSlack(data.uploadedFiles);
-                       } else {
-                           console.log('No files to send separately');
-                       }
+                       // Files are stored in Google Sheets, no need to send separate messages
+                       console.log('Files will be stored in Google Sheets');
                        
                        return;
                    }
