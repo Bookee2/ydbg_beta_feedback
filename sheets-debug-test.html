@@ -3,103 +3,193 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Google Sheets Test</title>
+    <title>Google Sheets Debug Test</title>
     <style>
-        body { font-family: Arial, sans-serif; padding: 20px; background: #1e293b; color: #f8fafc; }
-        .result { margin: 10px 0; padding: 10px; border-radius: 5px; }
-        .success { background: #059669; }
-        .error { background: #dc2626; }
-        .info { background: #3b82f6; }
-        button { background: #dc2626; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; margin: 10px 0; }
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #0f172a;
+            color: #f8fafc;
+        }
+        .test-section {
+            background: #1e293b;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            border: 1px solid #334155;
+        }
+        button {
+            background: #dc2626;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #ef4444;
+        }
+        .result {
+            background: #0f172a;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+        .success { border-left: 4px solid #10b981; }
+        .error { border-left: 4px solid #ef4444; }
+        .warning { border-left: 4px solid #f59e0b; }
     </style>
 </head>
 <body>
-    <h1>🔧 Google Sheets Test</h1>
-    <p>Test if the Google Apps Script is working correctly.</p>
+    <h1>🔍 Google Sheets Debug Test</h1>
     
-    <button onclick="testGoogleSheets()">Test Google Sheets</button>
-    <button onclick="testGoogleSheetsWithCORS()">Test Google Sheets (with CORS)</button>
-    
-    <div id="result" class="result"></div>
+    <div class="test-section">
+        <h2>Test 1: Check Google Apps Script Response</h2>
+        <p>This will show us exactly what the Google Apps Script is returning.</p>
+        <button onclick="testResponse()">Test Response</button>
+        <div id="responseResult" class="result"></div>
+    </div>
 
+    <div class="test-section">
+        <h2>Test 2: Test with Detailed Logging</h2>
+        <p>This will send test data and show the full response.</p>
+        <button onclick="testDetailed()">Test Detailed</button>
+        <div id="detailedResult" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 3: Test Simple Test Function</h2>
+        <p>This will call the simpleTest function in Google Apps Script.</p>
+        <button onclick="testSimpleFunction()">Test Simple Function</button>
+        <div id="simpleResult" class="result"></div>
+    </div>
+
+    <script src="config.js"></script>
     <script>
-        const GOOGLE_SHEETS_URL = 'https://script.google.com/macros/s/AKfycbzVouQj4SVc2x2ZoAm-fbAirwiloNjrC1iVlrv7xacDAhMUCajfO_zrmxgQTLgMPnl4Xg/exec';
+        const GOOGLE_SHEETS_URL = window.SLACK_CONFIG?.googleSheetsUrl || 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE';
         
-        async function testGoogleSheets() {
-            const resultDiv = document.getElementById('result');
-            resultDiv.innerHTML = 'Testing Google Sheets (no-cors mode)...';
-            resultDiv.className = 'result info';
-            
-            const testData = {
-                name: 'Test User',
-                os: 'iOS',
-                feedbackType: 'Test',
-                details: 'This is a test submission to verify Google Sheets integration.',
-                files: [],
-                timestamp: new Date().toISOString(),
-                userAgent: navigator.userAgent
-            };
-            
-            console.log('Testing Google Sheets with data:', testData);
-            
-            try {
-                const response = await fetch(GOOGLE_SHEETS_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(testData),
-                    mode: 'no-cors'
-                });
-                
-                console.log('Response received (no-cors mode)');
-                resultDiv.innerHTML = '✅ Test completed! Check your Google Sheet for a new row.';
-                resultDiv.className = 'result success';
-                
-            } catch (error) {
-                console.error('Test failed:', error);
-                resultDiv.innerHTML = `❌ Test failed: ${error.message}`;
-                resultDiv.className = 'result error';
-            }
+        function logResult(elementId, message, type = 'info') {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.className = `result ${type}`;
         }
-        
-        async function testGoogleSheetsWithCORS() {
-            const resultDiv = document.getElementById('result');
-            resultDiv.innerHTML = 'Testing Google Sheets (with CORS)...';
-            resultDiv.className = 'result info';
-            
-            const testData = {
-                name: 'Test User CORS',
-                os: 'Android',
-                feedbackType: 'Test',
-                details: 'This is a test submission with CORS to verify Google Sheets integration.',
-                files: [],
-                timestamp: new Date().toISOString(),
-                userAgent: navigator.userAgent
-            };
-            
-            console.log('Testing Google Sheets with CORS:', testData);
+
+        async function testResponse() {
+            logResult('responseResult', 'Testing Google Apps Script response...', 'info');
             
             try {
+                const testData = {
+                    name: 'Debug Test',
+                    os: 'Test',
+                    feedbackType: 'Test',
+                    details: 'Debug test to check response',
+                    files: []
+                };
+
                 const response = await fetch(GOOGLE_SHEETS_URL, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: {
+                        'Content-Type': 'text/plain;charset=utf-8'
+                    },
                     body: JSON.stringify(testData)
                 });
                 
-                if (response.ok) {
-                    const result = await response.json();
-                    console.log('Google Sheets response:', result);
-                    resultDiv.innerHTML = `✅ Test successful! Response: ${JSON.stringify(result)}`;
-                    resultDiv.className = 'result success';
-                } else {
-                    resultDiv.innerHTML = `❌ Test failed with status: ${response.status}`;
-                    resultDiv.className = 'result error';
+                const text = await response.text();
+                console.log('Full response:', response);
+                console.log('Response text:', text);
+                
+                logResult('responseResult', 
+                    `Response Details:\n` +
+                    `Status: ${response.status}\n` +
+                    `Status Text: ${response.statusText}\n` +
+                    `Headers: ${JSON.stringify([...response.headers.entries()], null, 2)}\n` +
+                    `Response Body: ${text}\n` +
+                    `Response OK: ${response.ok}`, 
+                    response.ok ? 'success' : 'error'
+                );
+            } catch (error) {
+                logResult('responseResult', `Response Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testDetailed() {
+            logResult('detailedResult', 'Testing with detailed logging...', 'info');
+            
+            try {
+                const testData = {
+                    name: 'Detailed Test User',
+                    os: 'iOS',
+                    feedbackType: 'Bug / Error',
+                    details: 'This is a detailed test to see what happens in Google Sheets',
+                    files: [],
+                    userAgent: navigator.userAgent
+                };
+
+                console.log('Sending data:', testData);
+
+                const response = await fetch(GOOGLE_SHEETS_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'text/plain;charset=utf-8'
+                    },
+                    body: JSON.stringify(testData)
+                });
+                
+                const text = await response.text();
+                console.log('Detailed response:', response);
+                console.log('Detailed response text:', text);
+                
+                let result;
+                try {
+                    result = JSON.parse(text);
+                } catch {
+                    result = text;
                 }
                 
+                logResult('detailedResult', 
+                    `Detailed Test Results:\n` +
+                    `Status: ${response.status}\n` +
+                    `Status Text: ${response.statusText}\n` +
+                    `Response: ${JSON.stringify(result, null, 2)}\n` +
+                    `Raw Response: ${text}`, 
+                    response.ok ? 'success' : 'error'
+                );
             } catch (error) {
-                console.error('Test failed:', error);
-                resultDiv.innerHTML = `❌ Test failed: ${error.message}`;
-                resultDiv.className = 'result error';
+                logResult('detailedResult', `Detailed Test Error: ${error.message}`, 'error');
             }
+        }
+
+        async function testSimpleFunction() {
+            logResult('simpleResult', 'Testing simpleTest function...', 'info');
+            
+            try {
+                // Try to call the simpleTest function
+                const response = await fetch(GOOGLE_SHEETS_URL + '?test=simpleTest', {
+                    method: 'GET'
+                });
+                
+                const text = await response.text();
+                
+                logResult('simpleResult', 
+                    `Simple Test Function Results:\n` +
+                    `Status: ${response.status}\n` +
+                    `Status Text: ${response.statusText}\n` +
+                    `Response: ${text}`, 
+                    response.ok ? 'success' : 'error'
+                );
+            } catch (error) {
+                logResult('simpleResult', `Simple Test Function Error: ${error.message}`, 'error');
+            }
+        }
+
+        // Check if config is loaded
+        if (GOOGLE_SHEETS_URL === 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE') {
+            logResult('responseResult', '⚠️ Please update config.js with your Google Apps Script URL', 'warning');
         }
     </script>
 </body>
