@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Script Verification Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #0f172a;
+            color: #f8fafc;
+        }
+        .test-section {
+            background: #1e293b;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            border: 1px solid #334155;
+        }
+        button {
+            background: #dc2626;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #ef4444;
+        }
+        .result {
+            background: #0f172a;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+        .success { border-left: 4px solid #10b981; }
+        .error { border-left: 4px solid #ef4444; }
+        .warning { border-left: 4px solid #f59e0b; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Script Verification Test</h1>
+    
+    <div class="test-section">
+        <h2>Test: Check Script Constants</h2>
+        <p>This will test if the script can access the SHEET_ID constant.</p>
+        <button onclick="testConstants()">Test Constants</button>
+        <div id="constantsResult" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test: Force Cache Refresh</h2>
+        <p>This will add a timestamp to bypass any caching issues.</p>
+        <button onclick="testCacheBypass()">Test Cache Bypass</button>
+        <div id="cacheResult" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test: Different Content Types</h2>
+        <p>This will test different ways of sending data.</p>
+        <button onclick="testContentTypes()">Test Content Types</button>
+        <div id="contentResult" class="result"></div>
+    </div>
+
+    <script src="config.js"></script>
+    <script>
+        const GOOGLE_SHEETS_URL = window.SLACK_CONFIG?.googleSheetsUrl || 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE';
+        
+        function logResult(elementId, message, type = 'info') {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.className = `result ${type}`;
+        }
+
+        async function testConstants() {
+            logResult('constantsResult', 'Testing script constants...', 'info');
+            
+            try {
+                const testData = {
+                    name: 'Constants Test',
+                    os: 'Test',
+                    feedbackType: 'Test',
+                    details: 'Testing if SHEET_ID is defined',
+                    files: []
+                };
+
+                const response = await fetch(GOOGLE_SHEETS_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'text/plain;charset=utf-8'
+                    },
+                    body: JSON.stringify(testData)
+                });
+                
+                const text = await response.text();
+                console.log('Constants test response:', text);
+                
+                logResult('constantsResult', 
+                    `Constants Test Results:\n` +
+                    `Status: ${response.status}\n` +
+                    `Response: ${text}\n` +
+                    `Contains SHEET_ID error: ${text.includes('SHEET_ID is not defined')}`, 
+                    text.includes('SHEET_ID is not defined') ? 'error' : 'success'
+                );
+            } catch (error) {
+                logResult('constantsResult', `Constants Test Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testCacheBypass() {
+            logResult('cacheResult', 'Testing cache bypass...', 'info');
+            
+            try {
+                const testData = {
+                    name: 'Cache Test',
+                    os: 'Test',
+                    feedbackType: 'Test',
+                    details: 'Testing cache bypass with timestamp: ' + new Date().toISOString(),
+                    files: []
+                };
+
+                // Add timestamp to URL to bypass cache
+                const urlWithTimestamp = GOOGLE_SHEETS_URL + '?t=' + Date.now();
+                
+                const response = await fetch(urlWithTimestamp, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'text/plain;charset=utf-8',
+                        'Cache-Control': 'no-cache'
+                    },
+                    body: JSON.stringify(testData)
+                });
+                
+                const text = await response.text();
+                console.log('Cache bypass response:', text);
+                
+                logResult('cacheResult', 
+                    `Cache Bypass Results:\n` +
+                    `Status: ${response.status}\n` +
+                    `Response: ${text}\n` +
+                    `Contains SHEET_ID error: ${text.includes('SHEET_ID is not defined')}`, 
+                    text.includes('SHEET_ID is not defined') ? 'error' : 'success'
+                );
+            } catch (error) {
+                logResult('cacheResult', `Cache Bypass Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testContentTypes() {
+            logResult('contentResult', 'Testing different content types...', 'info');
+            
+            try {
+                const testData = {
+                    name: 'Content Type Test',
+                    os: 'Test',
+                    feedbackType: 'Test',
+                    details: 'Testing different content types',
+                    files: []
+                };
+
+                const contentTypes = [
+                    'text/plain;charset=utf-8',
+                    'application/json',
+                    'application/x-www-form-urlencoded'
+                ];
+
+                let results = '';
+                
+                for (const contentType of contentTypes) {
+                    try {
+                        const response = await fetch(GOOGLE_SHEETS_URL, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': contentType
+                            },
+                            body: contentType === 'application/x-www-form-urlencoded' 
+                                ? new URLSearchParams(testData).toString()
+                                : JSON.stringify(testData)
+                        });
+                        
+                        const text = await response.text();
+                        results += `${contentType}:\nStatus: ${response.status}\nResponse: ${text}\n\n`;
+                    } catch (error) {
+                        results += `${contentType}:\nError: ${error.message}\n\n`;
+                    }
+                }
+                
+                logResult('contentResult', 
+                    `Content Type Test Results:\n${results}`, 
+                    results.includes('SHEET_ID is not defined') ? 'error' : 'warning'
+                );
+            } catch (error) {
+                logResult('contentResult', `Content Type Test Error: ${error.message}`, 'error');
+            }
+        }
+
+        // Check if config is loaded
+        if (GOOGLE_SHEETS_URL === 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE') {
+            logResult('constantsResult', '⚠️ Please update config.js with your Google Apps Script URL', 'warning');
+        }
+    </script>
+</body>
+</html>
