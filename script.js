@@ -326,9 +326,11 @@ async function sendToSlack(data) {
     }
     
     try {
-        // Format the message for Slack
+        console.log('Preparing Slack message...');
+        
+        // Start with basic message structure
         const slackMessage = {
-            text: `New YDBG App Beta Feedback`,
+            text: `New YDBG App Beta Feedback from ${data.name}`,
             blocks: [
                 {
                     type: "header",
@@ -368,36 +370,33 @@ async function sendToSlack(data) {
             ]
         };
         
-           // Add file attachments if any
-           if (data.uploadedFiles && data.uploadedFiles.length > 0) {
-               slackMessage.blocks.push({
-                   type: "section",
-                   text: {
-                       type: "mrkdwn",
-                       text: `*📎 Screenshots:* ${data.uploadedFiles.length} file(s) attached`
-                   }
-               });
-               
-               // Add file details and embed images
-               data.uploadedFiles.forEach((file, index) => {
-                   slackMessage.blocks.push({
-                       type: "section",
-                       text: {
-                           type: "mrkdwn",
-                           text: `📎 *File ${index + 1}:* ${file.name} (${(file.size / 1024).toFixed(1)} KB)`
-                       }
-                   });
-                   
-                   // Add image block for data URL
-                   if (file.url.startsWith('data:image/')) {
-                       slackMessage.blocks.push({
-                           type: "image",
-                           image_url: file.url,
-                           alt_text: file.name
-                       });
-                   }
-               });
-           }
+        console.log('Basic message prepared, adding files...');
+        
+        // Add file attachments if any (simplified to avoid size limits)
+        if (data.uploadedFiles && data.uploadedFiles.length > 0) {
+            console.log(`Adding ${data.uploadedFiles.length} files to message...`);
+            
+            slackMessage.blocks.push({
+                type: "section",
+                text: {
+                    type: "mrkdwn",
+                    text: `*📎 Screenshots:* ${data.uploadedFiles.length} file(s) attached`
+                }
+            });
+            
+            // Add file details (but not images to avoid size limits)
+            data.uploadedFiles.forEach((file, index) => {
+                slackMessage.blocks.push({
+                    type: "section",
+                    text: {
+                        type: "mrkdwn",
+                        text: `📎 *File ${index + 1}:* ${file.name} (${(file.size / 1024).toFixed(1)} KB)`
+                    }
+                });
+            });
+        }
+        
+        console.log('Message prepared, sending to Slack...');
         
         // Try multiple approaches to bypass CORS
         const approaches = [
