@@ -495,6 +495,26 @@ function setLoadingState(loading) {
     btnLoading.style.display = loading ? 'inline' : 'none';
 }
 
+// Submit another feedback function
+function submitAnother() {
+    // Reset form
+    form.reset();
+    
+    // Hide success message and show form
+    successMessage.style.display = 'none';
+    errorMessage.style.display = 'none';
+    form.style.display = 'block';
+    
+    // Scroll to top
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    
+    // Focus on first input
+    const firstInput = form.querySelector('input, select, textarea');
+    if (firstInput) {
+        firstInput.focus();
+    }
+}
+
 function showSuccess() {
     form.style.display = 'none';
     successMessage.style.display = 'block';

@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YDBG Beta Feedback - Admin Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .admin-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .admin-header {
+            background: #1e293b;
+            color: #f8fafc;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            border: 2px solid #334155;
+        }
+
+        .admin-header h1 {
+            margin: 0;
+            font-size: 2.5rem;
+            color: #f8fafc;
+        }
+
+        .admin-header p {
+            margin: 10px 0 0 0;
+            color: #94a3b8;
+        }
+
+        .controls {
+            background: #1e293b;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            border: 2px solid #334155;
+        }
+
+        .controls h3 {
+            color: #f8fafc;
+            margin: 0 0 15px 0;
+        }
+
+        .filter-controls {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .filter-controls select,
+        .filter-controls input {
+            background: #0f172a;
+            color: #f8fafc;
+            border: 1px solid #334155;
+            padding: 8px 12px;
+            border-radius: 5px;
+        }
+
+        .filter-controls select:focus,
+        .filter-controls input:focus {
+            outline: none;
+            border-color: #dc2626;
+        }
+
+        .feedback-list {
+            background: #1e293b;
+            border-radius: 10px;
+            border: 2px solid #334155;
+            overflow: hidden;
+        }
+
+        .feedback-item {
+            background: #0f172a;
+            border-bottom: 1px solid #334155;
+            padding: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .feedback-item:last-child {
+            border-bottom: none;
+        }
+
+        .feedback-item.handled {
+            background: #1e293b;
+            opacity: 0.7;
+        }
+
+        .feedback-item.handled .feedback-content {
+            text-decoration: line-through;
+            color: #64748b;
+        }
+
+        .feedback-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .feedback-meta {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: #94a3b8;
+            font-size: 0.9rem;
+        }
+
+        .meta-item strong {
+            color: #f8fafc;
+        }
+
+        .feedback-content {
+            margin-bottom: 15px;
+        }
+
+        .feedback-details {
+            background: #1e293b;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border-left: 4px solid #dc2626;
+        }
+
+        .feedback-details p {
+            margin: 0;
+            color: #f8fafc;
+            line-height: 1.6;
+        }
+
+        .screenshot-links {
+            margin-bottom: 15px;
+        }
+
+        .screenshot-links h4 {
+            color: #f8fafc;
+            margin: 0 0 10px 0;
+            font-size: 1rem;
+        }
+
+        .screenshot-link {
+            display: inline-block;
+            background: #dc2626;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 5px;
+            text-decoration: none;
+            margin-right: 10px;
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+            transition: background 0.3s ease;
+        }
+
+        .screenshot-link:hover {
+            background: #ef4444;
+        }
+
+        .feedback-actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .action-button {
+            background: #dc2626;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: background 0.3s ease;
+        }
+
+        .action-button:hover {
+            background: #ef4444;
+        }
+
+        .action-button.delete {
+            background: #dc2626;
+        }
+
+        .action-button.delete:hover {
+            background: #b91c1c;
+        }
+
+        .handled-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #f8fafc;
+            font-size: 0.9rem;
+        }
+
+        .handled-checkbox input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: #dc2626;
+        }
+
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .status-pending {
+            background: #f59e0b;
+            color: #000;
+        }
+
+        .status-handled {
+            background: #10b981;
+            color: #fff;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #94a3b8;
+        }
+
+        .error {
+            background: #dc2626;
+            color: white;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 40px;
+            color: #94a3b8;
+        }
+
+        @media (max-width: 768px) {
+            .admin-container {
+                padding: 10px;
+            }
+
+            .feedback-meta {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .feedback-actions {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .filter-controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-container">
+        <div class="admin-header">
+            <h1>🎯 YDBG Beta Feedback Admin</h1>
+            <p>Manage and track all beta feedback submissions</p>
+        </div>
+
+        <div class="controls">
+            <h3>📊 Filter & Search</h3>
+            <div class="filter-controls">
+                <select id="statusFilter">
+                    <option value="all">All Status</option>
+                    <option value="pending">Pending</option>
+                    <option value="handled">Handled</option>
+                </select>
+                <select id="typeFilter">
+                    <option value="all">All Types</option>
+                    <option value="Bug / Error">Bug / Error</option>
+                    <option value="UI / UX (look and feel of the app)">UI / UX</option>
+                    <option value="Feature configuration / workflow">Feature configuration</option>
+                    <option value="Improvement suggestion">Improvement suggestion</option>
+                    <option value="New feature request">New feature request</option>
+                    <option value="Other">Other</option>
+                </select>
+                <select id="osFilter">
+                    <option value="all">All OS</option>
+                    <option value="iOS">iOS</option>
+                    <option value="Android">Android</option>
+                </select>
+                <input type="text" id="searchInput" placeholder="Search by name or details...">
+                <button class="action-button" onclick="refreshData()">🔄 Refresh</button>
+            </div>
+        </div>
+
+        <div id="feedbackList" class="feedback-list">
+            <div class="loading">Loading feedback data...</div>
+        </div>
+    </div>
+
+    <script src="config.js"></script>
+    <script>
+        const GOOGLE_SHEETS_URL = window.SLACK_CONFIG?.googleSheetsUrl || 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE';
+        let feedbackData = [];
+        let filteredData = [];
+
+        // Load feedback data
+        async function loadFeedbackData() {
+            try {
+                const response = await fetch(GOOGLE_SHEETS_URL + '?action=getAllData', {
+                    method: 'GET',
+                    mode: 'no-cors'
+                });
+                
+                // Since we can't read the response with no-cors, we'll simulate the data
+                // In a real implementation, you'd need a separate endpoint that returns JSON
+                console.log('Loading feedback data...');
+                
+                // For now, we'll use mock data. In production, you'd need to implement
+                // a proper API endpoint to retrieve data from Google Sheets
+                feedbackData = [
+                    {
+                        id: 1,
+                        timestamp: '10/15/2024, 4:59:16 PM',
+                        name: 'Kris Brown',
+                        os: 'iOS',
+                        feedbackType: 'Bug / Error',
+                        details: 'The app crashes when I try to upload a photo.',
+                        screenshotLinks: 'https://drive.google.com/file/d/example1/view?usp=sharing',
+                        userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X)',
+                        handled: false
+                    },
+                    {
+                        id: 2,
+                        timestamp: '10/15/2024, 5:47:18 PM',
+                        name: 'Anthony Strayhorn',
+                        os: 'Android',
+                        feedbackType: 'UI / UX (look and feel of the app)',
+                        details: 'The button colors are hard to see in dark mode.',
+                        screenshotLinks: 'https://drive.google.com/file/d/example2/view?usp=sharing, https://drive.google.com/file/d/example3/view?usp=sharing',
+                        userAgent: 'Mozilla/5.0 (Linux; Android 13)',
+                        handled: true
+                    }
+                ];
+                
+                filteredData = [...feedbackData];
+                renderFeedbackList();
+                
+            } catch (error) {
+                console.error('Error loading feedback data:', error);
+                document.getElementById('feedbackList').innerHTML = 
+                    '<div class="error">Error loading feedback data. Please try again.</div>';
+            }
+        }
+
+        // Render feedback list
+        function renderFeedbackList() {
+            const container = document.getElementById('feedbackList');
+            
+            if (filteredData.length === 0) {
+                container.innerHTML = '<div class="no-data">No feedback submissions found.</div>';
+                return;
+            }
+
+            container.innerHTML = filteredData.map(item => `
+                <div class="feedback-item ${item.handled ? 'handled' : ''}" data-id="${item.id}">
+                    <div class="feedback-header">
+                        <div class="feedback-meta">
+                            <div class="meta-item">
+                                <strong>📅</strong> ${item.timestamp}
+                            </div>
+                            <div class="meta-item">
+                                <strong>👤</strong> ${item.name}
+                            </div>
+                            <div class="meta-item">
+                                <strong>📱</strong> ${item.os}
+                            </div>
+                            <div class="meta-item">
+                                <strong>🏷️</strong> ${item.feedbackType}
+                            </div>
+                        </div>
+                        <div class="status-badge ${item.handled ? 'status-handled' : 'status-pending'}">
+                            ${item.handled ? '✅ Handled' : '⏳ Pending'}
+                        </div>
+                    </div>
+                    
+                    <div class="feedback-content">
+                        <div class="feedback-details">
+                            <p>${item.details}</p>
+                        </div>
+                        
+                        ${item.screenshotLinks && item.screenshotLinks !== 'No files uploaded' ? `
+                            <div class="screenshot-links">
+                                <h4>📸 Screenshots:</h4>
+                                ${item.screenshotLinks.split(', ').map(link => 
+                                    `<a href="${link.trim()}" target="_blank" class="screenshot-link">View Screenshot</a>`
+                                ).join('')}
+                            </div>
+                        ` : ''}
+                    </div>
+                    
+                    <div class="feedback-actions">
+                        <div class="handled-checkbox">
+                            <input type="checkbox" id="handled-${item.id}" ${item.handled ? 'checked' : ''} 
+                                   onchange="toggleHandled(${item.id})">
+                            <label for="handled-${item.id}">Mark as handled</label>
+                        </div>
+                        <button class="action-button delete" onclick="deleteFeedback(${item.id})">
+                            🗑️ Delete
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Toggle handled status
+        function toggleHandled(id) {
+            const item = feedbackData.find(f => f.id === id);
+            if (item) {
+                item.handled = !item.handled;
+                // In production, you'd save this to Google Sheets
+                console.log(`Toggled handled status for item ${id}:`, item.handled);
+                applyFilters();
+            }
+        }
+
+        // Delete feedback
+        function deleteFeedback(id) {
+            if (confirm('Are you sure you want to delete this feedback submission?')) {
+                feedbackData = feedbackData.filter(f => f.id !== id);
+                applyFilters();
+                // In production, you'd delete from Google Sheets
+                console.log(`Deleted feedback item ${id}`);
+            }
+        }
+
+        // Apply filters
+        function applyFilters() {
+            const statusFilter = document.getElementById('statusFilter').value;
+            const typeFilter = document.getElementById('typeFilter').value;
+            const osFilter = document.getElementById('osFilter').value;
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+
+            filteredData = feedbackData.filter(item => {
+                const statusMatch = statusFilter === 'all' || 
+                    (statusFilter === 'pending' && !item.handled) ||
+                    (statusFilter === 'handled' && item.handled);
+                
+                const typeMatch = typeFilter === 'all' || item.feedbackType === typeFilter;
+                const osMatch = osFilter === 'all' || item.os === osFilter;
+                
+                const searchMatch = searchTerm === '' || 
+                    item.name.toLowerCase().includes(searchTerm) ||
+                    item.details.toLowerCase().includes(searchTerm);
+
+                return statusMatch && typeMatch && osMatch && searchMatch;
+            });
+
+            renderFeedbackList();
+        }
+
+        // Refresh data
+        function refreshData() {
+            document.getElementById('feedbackList').innerHTML = '<div class="loading">Refreshing data...</div>';
+            loadFeedbackData();
+        }
+
+        // Initialize filters
+        document.getElementById('statusFilter').addEventListener('change', applyFilters);
+        document.getElementById('typeFilter').addEventListener('change', applyFilters);
+        document.getElementById('osFilter').addEventListener('change', applyFilters);
+        document.getElementById('searchInput').addEventListener('input', applyFilters);
+
+        // Load data on page load
+        document.addEventListener('DOMContentLoaded', loadFeedbackData);
+
+        // Check if config is loaded
+        if (GOOGLE_SHEETS_URL === 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE') {
+            document.getElementById('feedbackList').innerHTML = 
+                '<div class="error">⚠️ Please configure your Google Apps Script URL in config.js</div>';
+        }
+    </script>
+</body>
+</html>

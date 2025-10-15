@@ -307,6 +307,26 @@ header h1 {
     line-height: 1.6;
 }
 
+.submit-another-btn {
+    background: #f8fafc;
+    color: #10b981;
+    border: 2px solid #f8fafc;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 20px;
+    transition: all 0.3s ease;
+}
+
+.submit-another-btn:hover {
+    background: #10b981;
+    color: #f8fafc;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(16, 185, 129, 0.4);
+}
+
 /* Responsive design */
 @media (max-width: 768px) {
     body {
