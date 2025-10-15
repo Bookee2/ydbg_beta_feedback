@@ -297,23 +297,22 @@ async function sendToGoogleSheets(data) {
                 const url = approach.url || GOOGLE_SHEETS_URL;
                 const response = await fetch(url, approach.options);
                 
-                   if (response.ok) {
-                       const result = await response.json();
-                       console.log('Google Sheets response:', result);
-                       if (result.success) {
-                           console.log('✅ Data sent to Google Sheets successfully');
-                           return;
-                       } else {
-                           console.warn('Google Sheets returned error:', result.error || result.message);
-                       }
-                   } else {
-                       console.warn(`Google Sheets ${approach.name} approach failed with status:`, response.status);
-                   }
-                } else if (approach.name === 'no-cors') {
+                if (approach.name === 'no-cors') {
                     // With no-cors, we can't read the response, but if no error is thrown, it might have worked
                     console.log('⚠️ Data sent to Google Sheets (no-cors mode) - cannot verify success');
                     console.log('Note: With no-cors mode, we cannot verify if the data was actually stored');
                     return;
+                } else if (response.ok) {
+                    const result = await response.json();
+                    console.log('Google Sheets response:', result);
+                    if (result.success) {
+                        console.log('✅ Data sent to Google Sheets successfully');
+                        return;
+                    } else {
+                        console.warn('Google Sheets returned error:', result.error || result.message);
+                    }
+                } else {
+                    console.warn(`Google Sheets ${approach.name} approach failed with status:`, response.status);
                 }
             } catch (error) {
                 console.log(`${approach.name} approach failed:`, error.message);
