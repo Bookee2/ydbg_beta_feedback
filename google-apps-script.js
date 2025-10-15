@@ -107,6 +107,11 @@ function simpleTest() {
       console.log('✅ SUCCESS: Sheet found');
       console.log('📋 Sheet name:', sheet.getName());
       console.log('📊 Current rows:', sheet.getLastRow());
+      
+      // Show current data
+      const dataRange = sheet.getDataRange();
+      const values = dataRange.getValues();
+      console.log('📋 Current data:', values);
     } else {
       console.log('⚠️ Sheet not found, creating it...');
       sheet = spreadsheet.insertSheet(SHEET_NAME);
@@ -119,8 +124,9 @@ function simpleTest() {
     
     // Step 3: Test adding data
     console.log('Step 3: Testing data addition...');
+    const timestamp = new Date().toLocaleString();
     const newRow = [
-      new Date().toLocaleString(),
+      timestamp,
       'Simple Test User',
       'iOS',
       'Test',
@@ -129,16 +135,63 @@ function simpleTest() {
       'Simple Test'
     ];
     
+    console.log('Adding row:', newRow);
     sheet.appendRow(newRow);
     console.log('✅ SUCCESS: Test row added');
-    console.log('📊 New total rows:', sheet.getLastRow());
+    
+    // Verify the row was added
+    const newRowCount = sheet.getLastRow();
+    console.log('📊 New total rows:', newRowCount);
+    
+    // Get the last row to verify it was added correctly
+    const lastRowRange = sheet.getRange(newRowCount, 1, 1, 7);
+    const lastRowData = lastRowRange.getValues()[0];
+    console.log('📋 Last row data:', lastRowData);
     
     console.log('🎉 ALL TESTS PASSED!');
-    return 'SUCCESS: All tests completed successfully!';
+    return 'SUCCESS: All tests completed successfully! Row count: ' + newRowCount;
     
   } catch (error) {
     console.error('❌ TEST FAILED:', error.toString());
     console.error('Error details:', error);
+    return 'ERROR: ' + error.toString();
+  }
+}
+
+/**
+ * DETAILED DEBUG FUNCTION - Run this to see what's happening
+ */
+function debugSheet() {
+  try {
+    console.log('🔍 Starting detailed debug...');
+    
+    const spreadsheet = SpreadsheetApp.openById(SHEET_ID);
+    console.log('📊 Spreadsheet:', spreadsheet.getName());
+    
+    const sheet = spreadsheet.getSheetByName(SHEET_NAME);
+    if (!sheet) {
+      console.log('❌ Sheet not found!');
+      return 'ERROR: Sheet not found';
+    }
+    
+    console.log('📋 Sheet:', sheet.getName());
+    console.log('📊 Total rows:', sheet.getLastRow());
+    console.log('📊 Total columns:', sheet.getLastColumn());
+    
+    // Get all data
+    const dataRange = sheet.getDataRange();
+    const values = dataRange.getValues();
+    console.log('📋 All data:', values);
+    
+    // Show each row
+    values.forEach((row, index) => {
+      console.log(`Row ${index + 1}:`, row);
+    });
+    
+    return 'SUCCESS: Debug completed. Check logs for details.';
+    
+  } catch (error) {
+    console.error('❌ DEBUG FAILED:', error.toString());
     return 'ERROR: ' + error.toString();
   }
 }
