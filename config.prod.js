@@ -1,7 +1,7 @@
 // Slack and Google Sheets Configuration for GitHub Pages
 // This file loads the actual URLs from a separate, non-tracked file
 window.SLACK_CONFIG = {
-    webhookUrl: 'YOUR_SLACK_WEBHOOK_URL_HERE',
+    webhookUrl: 'https://hooks.slack.com/services/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',
     googleSheetsUrl: 'https://script.google.com/macros/s/AKfycbx086lKDETdRyuSSOzBRmmnR0idiEA1GGVjq-lHC9JRdvYwjbA9hA3hFaVfkaRpFl42Vw/exec'
 };
 
@@ -23,6 +23,6 @@ fetch('config.prod.secret.js')
     });
 
 console.log('Config.prod.js loaded with URLs:', {
-    slack: window.SLACK_CONFIG.webhookUrl !== 'YOUR_SLACK_WEBHOOK_URL_HERE',
+    slack: window.SLACK_CONFIG.webhookUrl !== 'https://hooks.slack.com/services/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',
     sheets: window.SLACK_CONFIG.googleSheetsUrl !== 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE'
 });
