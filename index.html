@@ -88,7 +88,11 @@
         </div>
     </div>
 
-    <script src="config.prod.js?v=17&t=1734567890"></script>
+    <script>
+        const timestamp = Date.now();
+        const random = Math.random();
+        document.write('<script src="config.prod.js?v=18&t=' + timestamp + '&r=' + random + '"><\/script>');
+    </script>
     <script src="script.js"></script>
 </body>
 </html>
