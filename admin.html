@@ -26,6 +26,35 @@
             text-align: center;
         }
 
+        .header-actions {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .home-link {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+            padding: 12px 24px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.95rem;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .home-link:hover {
+            background: rgba(239, 68, 68, 0.2);
+            border-color: rgba(239, 68, 68, 0.5);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(239, 68, 68, 0.2);
+        }
+
         .admin-header h1 {
             margin: 0;
             font-size: 2.5rem;
@@ -555,9 +584,11 @@
                 <img src="logo.webp" alt="YDBG Logo" class="logo">
             </div>
             <div class="header-content">
-                <h1>YDBG App Beta Feedback - Admin Dashboard</h1>
-                <p class="subtitle">Manage feedback submissions and track progress</p>
-                <a href="index.html" class="admin-link">📝 Feedback Submission</a>
+                <h1>YDBG App Beta Feedback</h1>
+                <p class="subtitle">Admin Dashboard - Manage feedback submissions and track progress</p>
+                <div class="header-actions">
+                    <a href="index.html" class="home-link">🏠 Homepage</a>
+                </div>
             </div>
         </header>
 
