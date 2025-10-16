@@ -1,26 +1,29 @@
 // Slack and Google Sheets Configuration for GitHub Pages
-// This file loads the actual URLs from a separate, non-tracked file
+// This file loads the Slack webhook URL from a secret Google Sheet tab
 window.SLACK_CONFIG = {
-    webhookUrl: 'https://hooks.slack.com/services/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',
+    webhookUrl: 'YOUR_SLACK_WEBHOOK_URL_HERE', // Will be loaded from Google Sheets
     googleSheetsUrl: 'https://script.google.com/macros/s/AKfycbx086lKDETdRyuSSOzBRmmnR0idiEA1GGVjq-lHC9JRdvYwjbA9hA3hFaVfkaRpFl42Vw/exec'
 };
 
-// Try to load production config if available
-fetch('config.prod.secret.js')
-    .then(response => {
-        if (response.ok) {
-            return response.text();
+// Load Slack webhook URL from Google Sheets "Secret" tab
+async function loadSlackWebhookFromSheets() {
+    try {
+        const response = await fetch('YOUR_SLACK_WEBHOOK_LOADER_URL_HERE?action=getSlackWebhook');
+        const data = await response.json();
+        
+        if (data.success && data.webhookUrl) {
+            window.SLACK_CONFIG.webhookUrl = data.webhookUrl;
+            console.log('✅ Slack webhook loaded from Google Sheets');
+        } else {
+            console.log('⚠️ Could not load Slack webhook from Google Sheets, using default');
         }
-        throw new Error('Secret config not found');
-    })
-    .then(configText => {
-        // Execute the secret config to override the default URLs
-        eval(configText);
-        console.log('Production secret config loaded');
-    })
-    .catch(error => {
-        console.log('Using default config (secret config not available)');
-    });
+    } catch (error) {
+        console.log('⚠️ Error loading Slack webhook from Google Sheets:', error);
+    }
+}
+
+// Load the webhook URL when the page loads
+loadSlackWebhookFromSheets();
 
 console.log('Config.prod.js loaded with URLs:', {
     slack: window.SLACK_CONFIG.webhookUrl !== 'https://hooks.slack.com/services/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',
