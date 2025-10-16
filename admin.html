@@ -247,6 +247,77 @@
             color: #94a3b8;
         }
 
+        .password-prompt {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 60vh;
+            background: #0f172a;
+            border-radius: 10px;
+            border: 2px solid #334155;
+        }
+
+        .password-box {
+            background: #1e293b;
+            padding: 40px;
+            border-radius: 10px;
+            border: 2px solid #dc2626;
+            text-align: center;
+            max-width: 400px;
+            width: 100%;
+            box-shadow: 0 10px 30px rgba(220, 38, 38, 0.2);
+        }
+
+        .password-box h2 {
+            color: #f8fafc;
+            margin: 0 0 10px 0;
+            font-size: 1.8rem;
+        }
+
+        .password-box p {
+            color: #94a3b8;
+            margin: 0 0 20px 0;
+        }
+
+        .password-box input {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            background: #0f172a;
+            color: #f8fafc;
+            border: 1px solid #334155;
+            border-radius: 5px;
+            font-size: 1rem;
+            box-sizing: border-box;
+        }
+
+        .password-box input:focus {
+            outline: none;
+            border-color: #dc2626;
+        }
+
+        .password-btn {
+            background: #dc2626;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            width: 100%;
+        }
+
+        .password-btn:hover {
+            background: #ef4444;
+        }
+
+        .password-error {
+            color: #ef4444;
+            margin-top: 10px;
+            font-size: 0.9rem;
+        }
+
         @media (max-width: 768px) {
             .admin-container {
                 padding: 10px;
@@ -271,10 +342,25 @@
 </head>
 <body>
     <div class="admin-container">
-        <div class="admin-header">
-            <h1>🎯 YDBG Beta Feedback Admin</h1>
-            <p>Manage and track all beta feedback submissions</p>
+        <!-- Password Protection -->
+        <div id="passwordPrompt" class="password-prompt">
+            <div class="password-box">
+                <h2>🔒 Admin Access</h2>
+                <p>Please enter the admin password to continue:</p>
+                <input type="password" id="passwordInput" placeholder="Enter password" autocomplete="current-password">
+                <button onclick="checkPassword()" class="password-btn">Login</button>
+                <div id="passwordError" class="password-error" style="display: none;">
+                    ❌ Incorrect password. Please try again.
+                </div>
+            </div>
         </div>
+
+        <!-- Admin Content (hidden until password is correct) -->
+        <div id="adminContent" style="display: none;">
+            <div class="admin-header">
+                <h1>🎯 YDBG Beta Feedback Admin</h1>
+                <p>Manage and track all beta feedback submissions</p>
+            </div>
 
         <div class="controls">
             <h3>📊 Filter & Search</h3>
@@ -306,13 +392,50 @@
         <div id="feedbackList" class="feedback-list">
             <div class="loading">Loading feedback data...</div>
         </div>
+        </div> <!-- End adminContent -->
     </div>
 
     <script src="config.js"></script>
     <script>
         const GOOGLE_SHEETS_URL = window.SLACK_CONFIG?.googleSheetsUrl || 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE';
+        const ADMIN_PASSWORD = 'admin';
         let feedbackData = [];
         let filteredData = [];
+
+        // Password protection functions
+        function checkPassword() {
+            const passwordInput = document.getElementById('passwordInput');
+            const passwordError = document.getElementById('passwordError');
+            const passwordPrompt = document.getElementById('passwordPrompt');
+            const adminContent = document.getElementById('adminContent');
+            
+            if (passwordInput.value === ADMIN_PASSWORD) {
+                // Correct password - show admin content
+                passwordPrompt.style.display = 'none';
+                adminContent.style.display = 'block';
+                
+                // Load feedback data
+                loadFeedbackData();
+            } else {
+                // Incorrect password - show error
+                passwordError.style.display = 'block';
+                passwordInput.value = '';
+                passwordInput.focus();
+            }
+        }
+
+        // Allow Enter key to submit password
+        document.addEventListener('DOMContentLoaded', function() {
+            const passwordInput = document.getElementById('passwordInput');
+            if (passwordInput) {
+                passwordInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        checkPassword();
+                    }
+                });
+                passwordInput.focus();
+            }
+        });
 
         // Load feedback data
         async function loadFeedbackData() {
@@ -481,8 +604,7 @@
         document.getElementById('osFilter').addEventListener('change', applyFilters);
         document.getElementById('searchInput').addEventListener('input', applyFilters);
 
-        // Load data on page load
-        document.addEventListener('DOMContentLoaded', loadFeedbackData);
+        // Note: loadFeedbackData is called after password verification
 
         // Check if config is loaded
         if (GOOGLE_SHEETS_URL === 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE') {

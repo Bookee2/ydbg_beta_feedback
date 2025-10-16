@@ -36,6 +36,27 @@ header {
     border-bottom: 2px solid #334155;
 }
 
+.admin-link {
+    display: inline-block;
+    background: #dc2626;
+    color: #f8fafc;
+    padding: 8px 16px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+    margin-top: 15px;
+    transition: all 0.3s ease;
+    border: 1px solid #dc2626;
+}
+
+.admin-link:hover {
+    background: #ef4444;
+    border-color: #ef4444;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+}
+
 .logo-container {
     flex-shrink: 0;
     position: relative;
