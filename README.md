@@ -1,23 +1,27 @@
 # YDBG App Beta Feedback Collection Website
 
-A simple, modern web form for collecting beta tester feedback for the YDBG App rebuild. The form sends responses directly to a Slack channel via webhook.
+A modern, sleek web form for collecting beta tester feedback for the YDBG App rebuild. The form sends responses to both Slack and Google Sheets, with a comprehensive admin dashboard for managing feedback.
 
 ## Features
 
-- **Clean, Modern Design**: Responsive design that works on desktop and mobile
-- **Form Validation**: Client-side validation for required fields
-- **File Upload**: Support for multiple screenshot uploads
-- **Slack Integration**: Automatic posting to Slack channel via webhook
-- **Google Sheets Integration**: All feedback stored in a Google Sheet for easy analysis
-- **User-Friendly**: Intuitive interface with loading states and success/error messages
+- **Modern Apple-Inspired Design**: Sleek, glass morphism design with subtle red accents
+- **Dual Integration**: Automatic posting to Slack channel AND Google Sheets
+- **Admin Dashboard**: Complete admin panel with password protection for managing feedback
+- **File Upload**: Support for multiple screenshot uploads with Google Drive storage
+- **Real-time Management**: Mark feedback as handled, view detailed submissions
+- **Responsive Design**: Works perfectly on desktop and mobile devices
+- **Form Validation**: Client-side validation with user-friendly error messages
 
 ## Files Included
 
-- `index.html` - Main HTML structure
-- `styles.css` - Modern CSS styling with gradients and animations
+- `index.html` - Main feedback form with modern design
+- `admin.html` - Admin dashboard for managing feedback submissions
+- `styles.css` - Modern CSS styling with glass morphism and animations
 - `script.js` - JavaScript for form handling, Slack and Google Sheets integration
 - `config.example.js` - Configuration template
+- `config.prod.js` - Production configuration for GitHub Pages
 - `google-apps-script.js` - Google Apps Script code for Sheets integration
+- `logo.webp` - YDBG App logo
 - `README.md` - This setup guide
 
 ## Setup Instructions
@@ -30,16 +34,18 @@ A simple, modern web form for collecting beta tester feedback for the YDBG App r
 4. Choose the channel where you want feedback to be posted
 5. Copy the webhook URL
 
-### 2. Configure the Webhook URL
+### 2. Configure the URLs
 
-1. Open `script.js` in a text editor
-2. Find this line near the top:
+1. Copy `config.example.js` to `config.js`
+2. Replace the placeholder URLs with your actual URLs:
    ```javascript
-   const SLACK_WEBHOOK_URL = 'YOUR_SLACK_WEBHOOK_URL_HERE';
+   window.SLACK_CONFIG = {
+       webhookUrl: 'YOUR_SLACK_WEBHOOK_URL_HERE',
+       googleSheetsUrl: 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE'
+   };
    ```
-3. Replace `'YOUR_SLACK_WEBHOOK_URL_HERE'` with your actual Slack webhook URL
 
-**Note:** The `config.js` file is ignored by git to keep your webhook URL secure.
+**Note:** The `config.js` file is ignored by git to keep your URLs secure.
 
 ### 3. Google Sheets Integration Setup
 
@@ -113,6 +119,18 @@ When feedback is submitted, the following data is stored in your Google Sheet:
 | User Agent | Browser information |
 
 The sheet will automatically create headers on the first submission if they don't exist.
+
+## Admin Dashboard
+
+The admin dashboard (`admin.html`) provides comprehensive feedback management:
+
+- **Password Protection**: Access with password 'admin'
+- **Real-time Data**: Loads all feedback from Google Sheets
+- **Two-Table System**: Separate views for open and handled feedback
+- **Status Management**: Mark feedback as handled with strikethrough effect
+- **Detailed View**: Click any row to see full details and screenshots
+- **Screenshot Management**: View uploaded screenshots with Google Drive links
+- **Modern Interface**: Sleek design matching the main form
 
 ## Slack Message Format
 
