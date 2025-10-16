@@ -8,7 +8,7 @@ window.SLACK_CONFIG = {
 // Load Slack webhook URL from Google Sheets "Secret" tab
 async function loadSlackWebhookFromSheets() {
     try {
-        const response = await fetch('YOUR_SLACK_WEBHOOK_LOADER_URL_HERE?action=getSlackWebhook');
+        const response = await fetch('https://script.google.com/macros/s/AKfycbxiqkUABP5EkuqHIVz0yuusA_VKZUUDGhcXd8RyR1veawgTuafAqAbx7u-8ALHXgIe9TA/exec?action=getSlackWebhook');
         const data = await response.json();
         
         if (data.success && data.webhookUrl) {
