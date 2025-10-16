@@ -25,47 +25,17 @@ function doPost(e) {
     // Parse the incoming data
     const data = JSON.parse(e.postData.contents);
     
-    // Get the spreadsheet
-    const spreadsheet = SpreadsheetApp.openById(SHEET_ID);
-    
-    // Try to get the sheet, if it doesn't exist, create it
-    let sheet = spreadsheet.getSheetByName(SHEET_NAME);
-    
-    if (!sheet) {
-      // Create the sheet with headers
-      sheet = spreadsheet.insertSheet(SHEET_NAME);
-      sheet.getRange(1, 1, 1, 7).setValues([
-        ['Timestamp', 'Name', 'Operating System', 'Feedback Type', 'Details', 'Screenshots Count', 'User Agent']
-      ]);
-      sheet.getRange(1, 1, 1, 7).setFontWeight('bold');
+    // Handle different actions
+    if (data.action === 'updateStatus') {
+      return updateHandledStatus(data.id, data.handled);
     }
     
-    // Prepare the row data
-    const timestamp = new Date().toLocaleString();
-    const screenshotsCount = data.files ? data.files.length : 0;
+    if (data.action === 'getAllData') {
+      return getAllFeedbackData();
+    }
     
-    const rowData = [
-      timestamp,
-      data.name || '',
-      data.os || '',
-      data.feedbackType || '',
-      data.details || '',
-      screenshotsCount,
-      data.userAgent || ''
-    ];
-    
-    // Add the new row to the sheet
-    sheet.appendRow(rowData);
-    
-    // Return success response with CORS headers
-    const output = ContentService
-      .createTextOutput(JSON.stringify({success: true, message: 'Feedback stored successfully', timestamp: timestamp}))
-      .setMimeType(ContentService.MimeType.JSON);
-    
-    // Note: Google Apps Script doesn't support setHeader method
-    // CORS is handled by the platform automatically for web apps
-    
-    return output;
+    // Default: Handle form submission (existing functionality)
+    return handleFormSubmission(data);
       
   } catch (error) {
     // Log the error for debugging
@@ -76,27 +46,184 @@ function doPost(e) {
       .createTextOutput(JSON.stringify({
         success: false, 
         error: error.toString(),
-        message: 'Failed to store feedback in Google Sheets'
+        message: 'Failed to process request'
       }))
       .setMimeType(ContentService.MimeType.JSON);
-    
-    // Note: Google Apps Script doesn't support setHeader method
-    // CORS is handled by the platform automatically for web apps
     
     return errorOutput;
   }
 }
 
+function handleFormSubmission(data) {
+  try {
+    // Get the spreadsheet
+    const spreadsheet = SpreadsheetApp.openById(SHEET_ID);
+    
+    // Try to get the sheet, if it doesn't exist, create it
+    let sheet = spreadsheet.getSheetByName(SHEET_NAME);
+    
+    if (!sheet) {
+      // Create the sheet with headers
+      sheet = spreadsheet.insertSheet(SHEET_NAME);
+      sheet.getRange(1, 1, 1, 8).setValues([
+        ['Timestamp', 'Name', 'Operating System', 'Feedback Type', 'Details', 'Screenshot Links', 'User Agent', 'Handled']
+      ]);
+      sheet.getRange(1, 1, 1, 8).setFontWeight('bold');
+    }
+    
+    // Handle file uploads to Google Drive
+    let screenshotLinks = '';
+    if (data.files && data.files.length > 0) {
+      const uploadedLinks = [];
+      for (let i = 0; i < data.files.length; i++) {
+        const file = data.files[i];
+        try {
+          // Convert base64 to blob
+          const base64Data = file.url.split(',')[1];
+          const blob = Utilities.newBlob(Utilities.base64Decode(base64Data), file.type, file.name);
+          
+          // Upload to Google Drive
+          const driveFile = DriveApp.createFile(blob);
+          driveFile.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+          
+          // Get shareable link
+          const shareableLink = driveFile.getUrl();
+          uploadedLinks.push(shareableLink);
+          
+          console.log(`✅ File uploaded: ${file.name} -> ${shareableLink}`);
+        } catch (fileError) {
+          console.error(`❌ Error uploading ${file.name}:`, fileError);
+          uploadedLinks.push(`Error uploading ${file.name}`);
+        }
+      }
+      screenshotLinks = uploadedLinks.join(',');
+    }
+    
+    // Prepare the row data
+    const timestamp = new Date().toLocaleString();
+    
+    const rowData = [
+      timestamp,
+      data.name || '',
+      data.os || '',
+      data.feedbackType || '',
+      data.details || '',
+      screenshotLinks,
+      data.userAgent || '',
+      'FALSE' // Default handled status
+    ];
+    
+    // Add the new row to the sheet
+    sheet.appendRow(rowData);
+    
+    // Return success response
+    const output = ContentService
+      .createTextOutput(JSON.stringify({success: true, message: 'Feedback stored successfully', timestamp: timestamp}))
+      .setMimeType(ContentService.MimeType.JSON);
+    
+    return output;
+      
+  } catch (error) {
+    console.error('Form submission error:', error);
+    throw error;
+  }
+}
+
+function updateHandledStatus(id, handled) {
+  try {
+    const spreadsheet = SpreadsheetApp.openById(SHEET_ID);
+    const sheet = spreadsheet.getSheetByName(SHEET_NAME);
+    
+    if (!sheet) {
+      throw new Error('Sheet not found');
+    }
+    
+    // Find the row by ID (assuming ID corresponds to row number)
+    const rowNumber = parseInt(id) + 1; // +1 because sheet rows are 1-indexed and row 1 is header
+    const handledColumn = 8; // Column H
+    
+    // Update the handled status
+    sheet.getRange(rowNumber, handledColumn).setValue(handled ? 'TRUE' : 'FALSE');
+    
+    console.log(`✅ Updated handled status for row ${rowNumber} to ${handled}`);
+    
+    return ContentService
+      .createTextOutput(JSON.stringify({success: true, message: 'Status updated successfully'}))
+      .setMimeType(ContentService.MimeType.JSON);
+      
+  } catch (error) {
+    console.error('Status update error:', error);
+    return ContentService
+      .createTextOutput(JSON.stringify({success: false, error: error.toString()}))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+function getAllFeedbackData() {
+  try {
+    const spreadsheet = SpreadsheetApp.openById(SHEET_ID);
+    const sheet = spreadsheet.getSheetByName(SHEET_NAME);
+    
+    if (!sheet) {
+      return ContentService
+        .createTextOutput(JSON.stringify({success: false, error: 'Sheet not found'}))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+    
+    // Get all data from the sheet
+    const dataRange = sheet.getDataRange();
+    const values = dataRange.getValues();
+    
+    // Skip header row and convert to objects
+    const feedbackData = [];
+    for (let i = 1; i < values.length; i++) {
+      const row = values[i];
+      feedbackData.push({
+        id: i,
+        timestamp: row[0] || '',
+        name: row[1] || '',
+        os: row[2] || '',
+        feedbackType: row[3] || '',
+        details: row[4] || '',
+        screenshotLinks: row[5] || '',
+        userAgent: row[6] || '',
+        handled: row[7] === 'TRUE'
+      });
+    }
+    
+    return ContentService
+      .createTextOutput(JSON.stringify({success: true, data: feedbackData}))
+      .setMimeType(ContentService.MimeType.JSON);
+      
+  } catch (error) {
+    console.error('Get data error:', error);
+    return ContentService
+      .createTextOutput(JSON.stringify({success: false, error: error.toString()}))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
 function doGet(e) {
-  // Handle GET requests (for testing)
-  const output = ContentService
-    .createTextOutput('YDBG Feedback Collection API is running')
-    .setMimeType(ContentService.MimeType.TEXT);
-  
-  // Note: Google Apps Script doesn't support setHeader method
-  // CORS is handled by the platform automatically for web apps
-  
-  return output;
+  // Handle GET requests for data retrieval
+  try {
+    // Check if this is a request for all feedback data
+    if (e.parameter && e.parameter.action === 'getAllData') {
+      return getAllFeedbackData();
+    }
+    
+    // Default response for testing
+    const output = ContentService
+      .createTextOutput('YDBG Feedback Collection API is running')
+      .setMimeType(ContentService.MimeType.TEXT);
+    
+    return output;
+    
+  } catch (error) {
+    console.error('doGet error:', error);
+    return ContentService
+      .createTextOutput(JSON.stringify({success: false, error: error.toString()}))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
 }
 
 function doOptions(e) {

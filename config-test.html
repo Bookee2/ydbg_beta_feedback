@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Config Test</title>
+</head>
+<body>
+    <h1>Config Test</h1>
+    <div id="output"></div>
+    
+    <script src="config.prod.js?v=16&t=1234567890"></script>
+    <script>
+        console.log('Testing config loading...');
+        console.log('window.SLACK_CONFIG:', window.SLACK_CONFIG);
+        
+        if (window.SLACK_CONFIG) {
+            document.getElementById('output').innerHTML = `
+                <p>✅ Config loaded successfully!</p>
+                <p>Slack URL: ${window.SLACK_CONFIG.webhookUrl}</p>
+                <p>Sheets URL: ${window.SLACK_CONFIG.googleSheetsUrl}</p>
+            `;
+        } else {
+            document.getElementById('output').innerHTML = '<p>❌ Config not loaded!</p>';
+        }
+    </script>
+</body>
+</html>

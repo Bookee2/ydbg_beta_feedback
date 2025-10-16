@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Admin Google Apps Script</title>
+</head>
+<body>
+    <h1>Test Admin Google Apps Script</h1>
+    <button onclick="testGetAllData()">Test Get All Data</button>
+    <button onclick="testUpdateStatus()">Test Update Status</button>
+    <div id="result"></div>
+
+    <script>
+        const ADMIN_GOOGLE_SHEETS_URL = 'https://script.google.com/macros/s/AKfycbxnAVHkKbZQjWSjRN7rrKHO0qsg7KZZOBsoaENSNNH1fqZsZBWY4aJqxHzgr4w9osTAMA/exec';
+
+        async function testGetAllData() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = 'Testing getAllData...';
+            
+            try {
+                const response = await fetch(`${ADMIN_GOOGLE_SHEETS_URL}?action=getAllData`);
+                const responseText = await response.text();
+                
+                console.log('Response:', responseText);
+                
+                if (responseText.includes('{')) {
+                    const data = JSON.parse(responseText);
+                    if (data.success && data.data) {
+                        resultDiv.innerHTML = `✅ SUCCESS! Loaded ${data.data.length} feedback entries<br>First entry: ${JSON.stringify(data.data[0], null, 2)}`;
+                    } else {
+                        resultDiv.innerHTML = `❌ Error: ${data.error || 'Unknown error'}`;
+                    }
+                } else {
+                    resultDiv.innerHTML = `❌ No JSON data received: ${responseText}`;
+                }
+                
+            } catch (error) {
+                console.error('Error:', error);
+                resultDiv.innerHTML = `❌ Error: ${error.message}`;
+            }
+        }
+
+        async function testUpdateStatus() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = 'Testing updateStatus...';
+            
+            try {
+                // Test updating item with id 4 to handled: true
+                const updateData = {
+                    action: 'updateStatus',
+                    id: 4,
+                    handled: true
+                };
+
+                console.log('Sending test data:', updateData);
+
+                const response = await fetch(ADMIN_GOOGLE_SHEETS_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(updateData),
+                    mode: 'no-cors'
+                });
+
+                console.log('Response:', response);
+                resultDiv.innerHTML = '✅ Update request sent! Check console for details.';
+                
+                // Wait a moment then test getting data to verify the update
+                setTimeout(async () => {
+                    try {
+                        const getResponse = await fetch(`${ADMIN_GOOGLE_SHEETS_URL}?action=getAllData`);
+                        const responseText = await getResponse.text();
+                        console.log('Data after update:', responseText);
+                        
+                        const data = JSON.parse(responseText);
+                        const item4 = data.data.find(item => item.id === 4);
+                        resultDiv.innerHTML += `<br>Item 4 handled status: ${item4 ? item4.handled : 'not found'}`;
+                    } catch (error) {
+                        console.error('Error getting data:', error);
+                        resultDiv.innerHTML += `<br>Error getting data: ${error.message}`;
+                    }
+                }, 2000);
+                
+            } catch (error) {
+                console.error('Error:', error);
+                resultDiv.innerHTML = `❌ Error: ${error.message}`;
+            }
+        }
+    </script>
+</body>
+</html>

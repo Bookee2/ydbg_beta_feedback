@@ -7,624 +7,747 @@
     <link rel="stylesheet" href="styles.css">
     <style>
         .admin-container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
             padding: 20px;
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            border: 1px solid rgba(51, 65, 85, 0.3);
         }
 
         .admin-header {
-            background: #1e293b;
+            background: rgba(30, 41, 59, 0.9);
             color: #f8fafc;
-            padding: 30px;
-            border-radius: 10px;
+            padding: 40px;
+            border-radius: 16px;
             margin-bottom: 30px;
-            border: 2px solid #334155;
+            border: 1px solid rgba(51, 65, 85, 0.3);
+            text-align: center;
         }
 
         .admin-header h1 {
             margin: 0;
             font-size: 2.5rem;
-            color: #f8fafc;
+            font-weight: 700;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
         }
 
         .admin-header p {
-            margin: 10px 0 0 0;
-            color: #94a3b8;
+            color: #cbd5e1;
+            font-size: 1.1rem;
+            margin: 0;
         }
 
         .controls {
-            background: #1e293b;
-            padding: 20px;
-            border-radius: 10px;
-            margin-bottom: 30px;
-            border: 2px solid #334155;
-        }
-
-        .controls h3 {
-            color: #f8fafc;
-            margin: 0 0 15px 0;
-        }
-
-        .filter-controls {
             display: flex;
-            gap: 15px;
+            gap: 20px;
+            margin-bottom: 30px;
             flex-wrap: wrap;
             align-items: center;
         }
 
-        .filter-controls select,
-        .filter-controls input {
-            background: #0f172a;
-            color: #f8fafc;
-            border: 1px solid #334155;
-            padding: 8px 12px;
-            border-radius: 5px;
+        .control-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
         }
 
-        .filter-controls select:focus,
-        .filter-controls input:focus {
+        .control-group label {
+            color: #f1f5f9;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        .control-group select,
+        .control-group input {
+            padding: 10px 16px;
+            border: 2px solid rgba(51, 65, 85, 0.5);
+            border-radius: 8px;
+            background: rgba(15, 23, 42, 0.8);
+            color: #f8fafc;
+            font-size: 0.9rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .control-group select:focus,
+        .control-group input:focus {
             outline: none;
             border-color: #dc2626;
+            box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.15);
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: rgba(51, 65, 85, 0.8);
+            color: #f8fafc;
+            border: 1px solid rgba(51, 65, 85, 0.5);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(51, 65, 85, 1);
+            transform: translateY(-2px);
         }
 
         .feedback-list {
-            background: #1e293b;
-            border-radius: 10px;
-            border: 2px solid #334155;
-            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+
+        .table-section {
+            background: rgba(30, 41, 59, 0.6);
+            border-radius: 16px;
+            padding: 20px;
+            border: 1px solid rgba(51, 65, 85, 0.3);
+        }
+
+        .section-title {
+            color: #f8fafc;
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid rgba(220, 38, 38, 0.3);
+        }
+
+        .feedback-table-container {
+            overflow-x: auto;
+            border-radius: 12px;
+            border: 1px solid rgba(51, 65, 85, 0.3);
         }
 
         .feedback-table {
             width: 100%;
             border-collapse: collapse;
-            background: #1e293b;
-            border-radius: 10px;
-            overflow: hidden;
-        }
-
-        .feedback-table th,
-        .feedback-table td {
-            padding: 12px 8px;
-            text-align: left;
-            border-bottom: 1px solid #334155;
-            vertical-align: top;
+            background: rgba(15, 23, 42, 0.8);
         }
 
         .feedback-table th {
-            background: #0f172a;
+            background: rgba(30, 41, 59, 0.9);
             color: #f8fafc;
+            padding: 16px 12px;
+            text-align: left;
             font-weight: 600;
             font-size: 0.9rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+            border-bottom: 2px solid rgba(51, 65, 85, 0.5);
         }
 
-        .feedback-table tr {
-            transition: background 0.2s ease;
+        .feedback-table td {
+            padding: 12px;
+            border-bottom: 1px solid rgba(51, 65, 85, 0.3);
+            color: #e2e8f0;
+            font-size: 0.85rem;
+            vertical-align: top;
         }
 
         .feedback-table tr:hover {
-            background: #334155;
+            background: rgba(51, 65, 85, 0.2);
         }
 
-        .feedback-table tr.handled {
-            background: #1e293b;
-            opacity: 0.7;
-        }
-
-        .feedback-table tr.handled td {
+        .handled-row {
+            opacity: 0.6;
             text-decoration: line-through;
-            color: #64748b;
         }
 
-        .col-timestamp {
-            width: 140px;
-            font-size: 0.8rem;
-            color: #94a3b8;
-        }
+        .col-timestamp { width: 140px; }
+        .col-name { width: 120px; }
+        .col-os { width: 80px; }
+        .col-type { width: 150px; }
+        .col-details { min-width: 200px; }
+        .col-screenshots { width: 120px; }
+        .col-actions { width: 100px; }
 
-        .col-name {
-            width: 120px;
-            font-weight: 500;
-            color: #f8fafc;
-        }
-
-        .col-os {
-            width: 80px;
-            text-align: center;
-        }
-
-        .col-type {
-            width: 120px;
-            font-size: 0.9rem;
-        }
-
-        .col-details {
-            max-width: 300px;
-            font-size: 0.9rem;
-            line-height: 1.4;
-        }
-
-        .col-details .details-preview {
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
+        .details-cell {
+            max-width: 200px;
             overflow: hidden;
-            color: #94a3b8;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            cursor: pointer;
         }
 
-        .col-details .details-full {
-            display: none;
-            background: #0f172a;
-            padding: 10px;
-            border-radius: 5px;
-            margin-top: 5px;
-            border-left: 3px solid #dc2626;
-            color: #f8fafc;
-        }
-
-        .col-screenshots {
-            width: 120px;
-            text-align: center;
-        }
-
-        .col-actions {
-            width: 150px;
-            text-align: center;
+        .details-cell:hover {
+            white-space: normal;
+            overflow: visible;
         }
 
         .screenshot-link {
             display: inline-block;
-            background: #dc2626;
-            color: white;
             padding: 4px 8px;
-            border-radius: 3px;
+            background: rgba(220, 38, 38, 0.1);
+            color: #fca5a5;
             text-decoration: none;
+            border-radius: 6px;
             font-size: 0.8rem;
-            margin: 1px;
-            transition: background 0.3s ease;
+            margin: 2px;
+            border: 1px solid rgba(220, 38, 38, 0.3);
+            transition: all 0.3s ease;
         }
 
         .screenshot-link:hover {
-            background: #ef4444;
+            background: rgba(220, 38, 38, 0.2);
+            transform: translateY(-1px);
         }
 
-        .action-button {
-            background: #dc2626;
-            color: white;
+        .action-btn {
+            padding: 6px 12px;
             border: none;
-            padding: 4px 8px;
-            border-radius: 3px;
+            border-radius: 6px;
             cursor: pointer;
             font-size: 0.8rem;
-            margin: 1px;
-            transition: background 0.3s ease;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            margin: 2px;
         }
 
-        .action-button:hover {
-            background: #ef4444;
+        .btn-handled {
+            background: rgba(34, 197, 94, 0.1);
+            color: #86efac;
+            border: 1px solid rgba(34, 197, 94, 0.3);
         }
 
-        .action-button.delete {
-            background: #dc2626;
+        .btn-handled:hover {
+            background: rgba(34, 197, 94, 0.2);
+            transform: translateY(-1px);
         }
 
-        .action-button.delete:hover {
-            background: #b91c1c;
+        .btn-pending {
+            background: rgba(251, 191, 36, 0.1);
+            color: #fcd34d;
+            border: 1px solid rgba(251, 191, 36, 0.3);
         }
 
-        .handled-checkbox {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 4px;
-        }
-
-        .handled-checkbox input[type="checkbox"] {
-            width: 16px;
-            height: 16px;
-            accent-color: #dc2626;
+        .btn-pending:hover {
+            background: rgba(251, 191, 36, 0.2);
+            transform: translateY(-1px);
         }
 
         .status-badge {
-            padding: 2px 6px;
-            border-radius: 8px;
-            font-size: 0.7rem;
-            font-weight: bold;
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 500;
             text-transform: uppercase;
         }
 
-        .status-pending {
-            background: #f59e0b;
-            color: #000;
+        .status-open {
+            background: rgba(251, 191, 36, 0.1);
+            color: #fcd34d;
+            border: 1px solid rgba(251, 191, 36, 0.3);
         }
 
         .status-handled {
-            background: #10b981;
-            color: #fff;
+            background: rgba(34, 197, 94, 0.1);
+            color: #86efac;
+            border: 1px solid rgba(34, 197, 94, 0.3);
         }
 
-        .expand-details {
-            color: #dc2626;
-            cursor: pointer;
-            font-size: 0.8rem;
-            text-decoration: underline;
-        }
-
-        .expand-details:hover {
-            color: #ef4444;
-        }
-
-        .loading {
+        .loading, .error, .no-data {
             text-align: center;
             padding: 40px;
             color: #94a3b8;
+            font-style: italic;
         }
 
         .error {
-            background: #dc2626;
-            color: white;
-            padding: 15px;
-            border-radius: 5px;
-            margin: 20px 0;
+            color: #fca5a5;
         }
 
-        .no-data {
-            text-align: center;
-            padding: 40px;
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+        }
+
+        .modal-content {
+            background: rgba(30, 41, 59, 0.95);
+            margin: 5% auto;
+            padding: 30px;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 80vh;
+            overflow-y: auto;
+            border: 1px solid rgba(51, 65, 85, 0.3);
+            backdrop-filter: blur(20px);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid rgba(51, 65, 85, 0.3);
+        }
+
+        .modal-title {
+            color: #f8fafc;
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .close {
             color: #94a3b8;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.3s ease;
         }
 
-        .password-prompt {
+        .close:hover {
+            color: #f8fafc;
+        }
+
+        .modal-body {
+            color: #e2e8f0;
+            line-height: 1.6;
+        }
+
+        .modal-field {
+            margin-bottom: 15px;
+        }
+
+        .modal-field strong {
+            color: #f8fafc;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .modal-field span {
+            color: #cbd5e1;
+        }
+
+        .screenshots-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .screenshot-card {
+            background: rgba(15, 23, 42, 0.8);
+            border-radius: 12px;
+            padding: 15px;
+            text-align: center;
+            border: 1px solid rgba(51, 65, 85, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .screenshot-card:hover {
+            background: rgba(15, 23, 42, 1);
+            transform: translateY(-2px);
+        }
+
+        .screenshot-card img {
+            width: 100%;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+
+        .screenshot-card .screenshot-link {
+            display: block;
+            margin: 0;
+            padding: 8px 12px;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+            justify-content: flex-end;
+        }
+
+        .modal-btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .modal-btn.primary {
+            background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+            color: white;
+        }
+
+        .modal-btn.primary:hover {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            transform: translateY(-2px);
+        }
+
+        .modal-btn.secondary {
+            background: rgba(51, 65, 85, 0.8);
+            color: #f8fafc;
+            border: 1px solid rgba(51, 65, 85, 0.5);
+        }
+
+        .modal-btn.secondary:hover {
+            background: rgba(51, 65, 85, 1);
+            transform: translateY(-2px);
+        }
+
+        /* Password Protection */
+        .password-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(20px);
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 60vh;
-            background: #0f172a;
-            border-radius: 10px;
-            border: 2px solid #334155;
+            z-index: 2000;
         }
 
-        .password-box {
-            background: #1e293b;
+        .password-form {
+            background: rgba(30, 41, 59, 0.9);
             padding: 40px;
-            border-radius: 10px;
-            border: 2px solid #dc2626;
+            border-radius: 20px;
             text-align: center;
-            max-width: 400px;
-            width: 100%;
-            box-shadow: 0 10px 30px rgba(220, 38, 38, 0.2);
+            border: 1px solid rgba(51, 65, 85, 0.3);
+            backdrop-filter: blur(20px);
         }
 
-        .password-box h2 {
+        .password-form h2 {
             color: #f8fafc;
-            margin: 0 0 10px 0;
+            margin-bottom: 20px;
             font-size: 1.8rem;
         }
 
-        .password-box p {
-            color: #94a3b8;
-            margin: 0 0 20px 0;
-        }
-
-        .password-box input {
-            width: 100%;
-            padding: 12px;
-            margin-bottom: 15px;
-            background: #0f172a;
+        .password-form input {
+            padding: 15px 20px;
+            border: 2px solid rgba(51, 65, 85, 0.5);
+            border-radius: 12px;
+            background: rgba(15, 23, 42, 0.8);
             color: #f8fafc;
-            border: 1px solid #334155;
-            border-radius: 5px;
             font-size: 1rem;
-            box-sizing: border-box;
+            width: 300px;
+            margin-bottom: 20px;
+            backdrop-filter: blur(10px);
         }
 
-        .password-box input:focus {
+        .password-form input:focus {
             outline: none;
             border-color: #dc2626;
+            box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.15);
         }
 
-        .password-btn {
-            background: #dc2626;
+        .password-form button {
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
             color: white;
             border: none;
-            padding: 12px 24px;
-            border-radius: 5px;
+            border-radius: 12px;
             font-size: 1rem;
+            font-weight: 600;
             cursor: pointer;
-            transition: background 0.3s ease;
-            width: 100%;
+            transition: all 0.3s ease;
         }
 
-        .password-btn:hover {
-            background: #ef4444;
+        .password-form button:hover {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            transform: translateY(-2px);
         }
 
         .password-error {
-            color: #ef4444;
-            margin-top: 10px;
+            color: #fca5a5;
+            margin-top: 15px;
             font-size: 0.9rem;
         }
 
         @media (max-width: 768px) {
             .admin-container {
-                padding: 10px;
+                padding: 15px;
             }
 
-            .feedback-meta {
-                flex-direction: column;
-                gap: 10px;
+            .admin-header {
+                padding: 30px 20px;
             }
 
-            .feedback-actions {
-                flex-direction: column;
-                align-items: stretch;
+            .admin-header h1 {
+                font-size: 2rem;
             }
 
-            .filter-controls {
+            .controls {
                 flex-direction: column;
                 align-items: stretch;
+            }
+
+            .control-group {
+                justify-content: space-between;
+            }
+
+            .feedback-table-container {
+                font-size: 0.8rem;
+            }
+
+            .feedback-table th,
+            .feedback-table td {
+                padding: 8px 6px;
+            }
+
+            .modal-content {
+                margin: 10% auto;
+                padding: 20px;
+                width: 95%;
+            }
+
+            .screenshots-grid {
+                grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
             }
         }
     </style>
 </head>
 <body>
-    <div class="admin-container">
-        <!-- Password Protection -->
-        <div id="passwordPrompt" class="password-prompt">
-            <div class="password-box">
-                <h2>🔒 Admin Access</h2>
-                <p>Please enter the admin password to continue:</p>
-                <input type="password" id="passwordInput" placeholder="Enter password" autocomplete="current-password">
-                <button onclick="checkPassword()" class="password-btn">Login</button>
-                <div id="passwordError" class="password-error" style="display: none;">
-                    ❌ Incorrect password. Please try again.
-                </div>
-            </div>
+    <!-- Password Protection Overlay -->
+    <div id="passwordOverlay" class="password-overlay">
+        <div class="password-form">
+            <h2>🔐 Admin Access Required</h2>
+            <input type="password" id="passwordInput" placeholder="Enter admin password" autocomplete="current-password">
+            <br>
+            <button onclick="checkPassword()">Access Dashboard</button>
+            <div id="passwordError" class="password-error" style="display: none;">Incorrect password. Please try again.</div>
+        </div>
+    </div>
+
+    <!-- Main Admin Content -->
+    <div id="adminContent" class="admin-container" style="display: none;">
+        <div class="admin-header">
+            <h1>YDBG Beta Feedback Admin</h1>
+            <p>Manage and track all beta feedback submissions</p>
         </div>
 
-        <!-- Admin Content (hidden until password is correct) -->
-        <div id="adminContent" style="display: none;">
-            <div class="admin-header">
-                <h1>🎯 YDBG Beta Feedback Admin</h1>
-                <p>Manage and track all beta feedback submissions</p>
-            </div>
-
         <div class="controls">
-            <h3>📊 Filter & Search</h3>
-            <div class="filter-controls">
+            <div class="control-group">
+                <label for="statusFilter">Status:</label>
                 <select id="statusFilter">
-                    <option value="all">All Status</option>
-                    <option value="pending">Pending</option>
+                    <option value="all">All</option>
+                    <option value="open">Open</option>
                     <option value="handled">Handled</option>
                 </select>
+            </div>
+
+            <div class="control-group">
+                <label for="typeFilter">Type:</label>
                 <select id="typeFilter">
                     <option value="all">All Types</option>
                     <option value="Bug / Error">Bug / Error</option>
                     <option value="UI / UX (look and feel of the app)">UI / UX</option>
-                    <option value="Feature configuration / workflow">Feature configuration</option>
-                    <option value="Improvement suggestion">Improvement suggestion</option>
-                    <option value="New feature request">New feature request</option>
+                    <option value="Feature configuration / workflow">Feature Config</option>
+                    <option value="Improvement suggestion">Improvement</option>
+                    <option value="New feature request">New Feature</option>
                     <option value="Other">Other</option>
                 </select>
+            </div>
+
+            <div class="control-group">
+                <label for="osFilter">OS:</label>
                 <select id="osFilter">
                     <option value="all">All OS</option>
                     <option value="iOS">iOS</option>
                     <option value="Android">Android</option>
                 </select>
-                <input type="text" id="searchInput" placeholder="Search by name or details...">
-                <button class="action-button" onclick="refreshData()">🔄 Refresh</button>
             </div>
+
+            <div class="control-group">
+                <label for="searchInput">Search:</label>
+                <input type="text" id="searchInput" placeholder="Search by name or details...">
+            </div>
+
+            <button class="btn btn-primary" onclick="refreshData()">🔄 Refresh</button>
         </div>
 
         <div id="feedbackList" class="feedback-list">
-            <table class="feedback-table">
-                <thead>
-                    <tr>
-                        <th class="col-timestamp">Timestamp</th>
-                        <th class="col-name">Name</th>
-                        <th class="col-os">OS</th>
-                        <th class="col-type">Type</th>
-                        <th class="col-details">Details</th>
-                        <th class="col-screenshots">Screenshots</th>
-                        <th class="col-actions">Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="feedbackTableBody">
-                    <tr>
-                        <td colspan="7" class="loading">Loading feedback data...</td>
-                    </tr>
-                </tbody>
-            </table>
+            <!-- Open Feedback Requests -->
+            <div class="table-section">
+                <h3 class="section-title">Open Feedback Requests</h3>
+                <div class="feedback-table-container">
+                    <table class="feedback-table">
+                        <thead>
+                            <tr>
+                                <th class="col-timestamp">Timestamp</th>
+                                <th class="col-name">Name</th>
+                                <th class="col-os">OS</th>
+                                <th class="col-type">Type</th>
+                                <th class="col-details">Details</th>
+                                <th class="col-screenshots">Screenshots</th>
+                                <th class="col-actions">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="openFeedbackTableBody">
+                            <tr>
+                                <td colspan="7" class="loading">Loading open feedback...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Handled Feedback Requests -->
+            <div class="table-section">
+                <h3 class="section-title">Handled Feedback Requests</h3>
+                <div class="feedback-table-container">
+                    <table class="feedback-table">
+                        <thead>
+                            <tr>
+                                <th class="col-timestamp">Timestamp</th>
+                                <th class="col-name">Name</th>
+                                <th class="col-os">OS</th>
+                                <th class="col-type">Type</th>
+                                <th class="col-details">Details</th>
+                                <th class="col-screenshots">Screenshots</th>
+                                <th class="col-actions">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="handledFeedbackTableBody">
+                            <tr>
+                                <td colspan="7" class="loading">Loading handled feedback...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
-        </div> <!-- End adminContent -->
     </div>
 
-    <script src="config.prod.js?v=13&t=1234567890"></script>
+    <!-- Modal for detailed view -->
+    <div id="feedbackModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Feedback Details</h2>
+                <span class="close" onclick="closeModal()">&times;</span>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <!-- Dynamic content will be inserted here -->
+            </div>
+            <div class="modal-actions">
+                <button class="modal-btn secondary" onclick="closeModal()">Close</button>
+                <button class="modal-btn primary" id="modalToggleHandled" onclick="toggleHandledFromModal()">Mark as Handled</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="config.prod.js?v=16&t=1234567890"></script>
     <script>
         const GOOGLE_SHEETS_URL = window.SLACK_CONFIG?.googleSheetsUrl || 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE';
         const ADMIN_PASSWORD = 'admin';
         let feedbackData = [];
         let filteredData = [];
+        let currentModalItem = null;
 
-        // Password protection functions
+        // Password protection
         function checkPassword() {
-            const passwordInput = document.getElementById('passwordInput');
-            const passwordError = document.getElementById('passwordError');
-            const passwordPrompt = document.getElementById('passwordPrompt');
-            const adminContent = document.getElementById('adminContent');
+            const password = document.getElementById('passwordInput').value;
+            const errorDiv = document.getElementById('passwordError');
             
-            if (passwordInput.value === ADMIN_PASSWORD) {
-                // Correct password - show admin content
-                passwordPrompt.style.display = 'none';
-                adminContent.style.display = 'block';
-                
-                // Load feedback data
+            if (password === ADMIN_PASSWORD) {
+                document.getElementById('passwordOverlay').style.display = 'none';
+                document.getElementById('adminContent').style.display = 'block';
                 loadFeedbackData();
             } else {
-                // Incorrect password - show error
-                passwordError.style.display = 'block';
-                passwordInput.value = '';
-                passwordInput.focus();
+                errorDiv.style.display = 'block';
+                document.getElementById('passwordInput').value = '';
             }
         }
 
-        // Allow Enter key to submit password
-        document.addEventListener('DOMContentLoaded', function() {
-            const passwordInput = document.getElementById('passwordInput');
-            if (passwordInput) {
-                passwordInput.addEventListener('keypress', function(e) {
-                    if (e.key === 'Enter') {
-                        checkPassword();
-                    }
-                });
-                passwordInput.focus();
+        // Allow Enter key for password
+        document.getElementById('passwordInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                checkPassword();
             }
         });
 
-        // Load feedback data
+        // Load feedback data from Google Sheets
         async function loadFeedbackData() {
             try {
-                const response = await fetch(GOOGLE_SHEETS_URL + '?action=getAllData', {
-                    method: 'GET',
-                    mode: 'no-cors'
-                });
+                console.log('Loading feedback data from Google Sheets...');
                 
-                // Since we can't read the response with no-cors, we'll simulate the data
-                // In a real implementation, you'd need a separate endpoint that returns JSON
-                console.log('Loading feedback data...');
+                // Use the admin-specific Google Apps Script URL (bound script)
+                const ADMIN_GOOGLE_SHEETS_URL = 'https://script.google.com/macros/s/AKfycbwGH3qlj60k_u1UdNti_gKSPR2BMA1fJyXSUKYxKUUf4LzJtY3PPkkuhpQxcEBroYyIkA/exec';
                 
-                // For now, we'll use mock data. In production, you'd need to implement
-                // a proper API endpoint to retrieve data from Google Sheets
-                feedbackData = [
-                    {
-                        id: 1,
-                        timestamp: '10/15/2024, 4:59:16 PM',
-                        name: 'Kris Brown',
-                        os: 'iOS',
-                        feedbackType: 'Bug / Error',
-                        details: 'The app crashes when I try to upload a photo.',
-                        screenshotLinks: 'https://drive.google.com/file/d/example1/view?usp=sharing',
-                        userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X)',
-                        handled: false
-                    },
-                    {
-                        id: 2,
-                        timestamp: '10/15/2024, 5:47:18 PM',
-                        name: 'Anthony Strayhorn',
-                        os: 'Android',
-                        feedbackType: 'UI / UX (look and feel of the app)',
-                        details: 'The button colors are hard to see in dark mode.',
-                        screenshotLinks: 'https://drive.google.com/file/d/example2/view?usp=sharing, https://drive.google.com/file/d/example3/view?usp=sharing',
-                        userAgent: 'Mozilla/5.0 (Linux; Android 13)',
-                        handled: true
-                    },
-                    {
-                        id: 3,
-                        timestamp: new Date().toLocaleString(),
-                        name: 'Kris Brown',
-                        os: 'iOS',
-                        feedbackType: 'Bug / Error',
-                        details: 'Test submission from the working form - this should show up in the admin panel!',
-                        screenshotLinks: 'No files uploaded',
-                        userAgent: navigator.userAgent,
-                        handled: false
+                if (ADMIN_GOOGLE_SHEETS_URL === 'YOUR_ADMIN_GOOGLE_APPS_SCRIPT_URL_HERE') {
+                    console.log('⚠️ Admin Google Apps Script URL not configured, using fallback data');
+                    feedbackData = [];
+                    applyFilters();
+                    return;
+                }
+                
+                // Try to get data via a GET request with action parameter
+                const getResponse = await fetch(`${ADMIN_GOOGLE_SHEETS_URL}?action=getAllData`);
+                const responseText = await getResponse.text();
+                
+                console.log('📊 GET response text:', responseText);
+                
+                // If we get JSON data, parse it
+                if (responseText.includes('{')) {
+                    try {
+                        const data = JSON.parse(responseText);
+                        if (data.success && data.data) {
+                            feedbackData = data.data;
+                            console.log('✅ Loaded real data from Google Sheets:', feedbackData);
+                        } else {
+                            throw new Error('Invalid data format');
+                        }
+                    } catch (parseError) {
+                        console.log('Could not parse response, using fallback data');
+                        throw parseError;
                     }
-                ];
+                } else {
+                    throw new Error('No JSON data received');
+                }
                 
-                filteredData = [...feedbackData];
-                renderFeedbackList();
+                applyFilters();
                 
             } catch (error) {
                 console.error('Error loading feedback data:', error);
-                document.getElementById('feedbackList').innerHTML = 
-                    '<div class="error">Error loading feedback data. Please try again.</div>';
-            }
-        }
-
-        // Render feedback list
-        function renderFeedbackList() {
-            const tableBody = document.getElementById('feedbackTableBody');
-            
-            if (filteredData.length === 0) {
-                tableBody.innerHTML = '<tr><td colspan="7" class="no-data">No feedback submissions found.</td></tr>';
-                return;
-            }
-
-            tableBody.innerHTML = filteredData.map(item => `
-                <tr class="${item.handled ? 'handled' : ''}" data-id="${item.id}">
-                    <td class="col-timestamp">${item.timestamp}</td>
-                    <td class="col-name">${item.name}</td>
-                    <td class="col-os">
-                        <span class="status-badge ${item.os === 'iOS' ? 'status-handled' : 'status-pending'}">
-                            ${item.os}
-                        </span>
-                    </td>
-                    <td class="col-type">${item.feedbackType}</td>
-                    <td class="col-details">
-                        <div class="details-preview">${item.details}</div>
-                        ${item.details.length > 100 ? `
-                            <span class="expand-details" onclick="toggleDetails(${item.id})">Show more</span>
-                            <div class="details-full" id="details-${item.id}">${item.details}</div>
-                        ` : ''}
-                    </td>
-                    <td class="col-screenshots">
-                        ${item.screenshotLinks && item.screenshotLinks !== 'No files uploaded' ? 
-                            item.screenshotLinks.split(', ').map(link => 
-                                `<a href="${link.trim()}" target="_blank" class="screenshot-link">📸</a>`
-                            ).join('') : 
-                            '<span style="color: #64748b; font-size: 0.8rem;">No files</span>'
-                        }
-                    </td>
-                    <td class="col-actions">
-                        <div class="handled-checkbox">
-                            <input type="checkbox" id="handled-${item.id}" ${item.handled ? 'checked' : ''} 
-                                   onchange="toggleHandled(${item.id})">
-                        </div>
-                        <button class="action-button delete" onclick="deleteFeedback(${item.id})" title="Delete">
-                            🗑️
-                        </button>
-                    </td>
-                </tr>
-            `).join('');
-        }
-
-        // Toggle details expansion
-        function toggleDetails(id) {
-            const detailsFull = document.getElementById(`details-${id}`);
-            const expandLink = detailsFull.previousElementSibling;
-            
-            if (detailsFull.style.display === 'none' || detailsFull.style.display === '') {
-                detailsFull.style.display = 'block';
-                expandLink.textContent = 'Show less';
-            } else {
-                detailsFull.style.display = 'none';
-                expandLink.textContent = 'Show more';
-            }
-        }
-
-        // Toggle handled status
-        function toggleHandled(id) {
-            const item = feedbackData.find(f => f.id === id);
-            if (item) {
-                item.handled = !item.handled;
-                // In production, you'd save this to Google Sheets
-                console.log(`Toggled handled status for item ${id}:`, item.handled);
+                console.log('Using fallback data structure...');
+                
+                // Fallback to empty array - will be populated by form submissions
+                feedbackData = [];
+                console.log('📊 No data available yet - submit some feedback first!');
                 applyFilters();
             }
         }
 
-        // Delete feedback
-        function deleteFeedback(id) {
-            if (confirm('Are you sure you want to delete this feedback submission?')) {
-                feedbackData = feedbackData.filter(f => f.id !== id);
-                applyFilters();
-                // In production, you'd delete from Google Sheets
-                console.log(`Deleted feedback item ${id}`);
-            }
-        }
-
-        // Apply filters
+        // Apply filters and render data
         function applyFilters() {
             const statusFilter = document.getElementById('statusFilter').value;
             const typeFilter = document.getElementById('typeFilter').value;
@@ -632,42 +755,305 @@
             const searchTerm = document.getElementById('searchInput').value.toLowerCase();
 
             filteredData = feedbackData.filter(item => {
-                const statusMatch = statusFilter === 'all' || 
-                    (statusFilter === 'pending' && !item.handled) ||
+                const matchesStatus = statusFilter === 'all' || 
+                    (statusFilter === 'open' && !item.handled) ||
                     (statusFilter === 'handled' && item.handled);
                 
-                const typeMatch = typeFilter === 'all' || item.feedbackType === typeFilter;
-                const osMatch = osFilter === 'all' || item.os === osFilter;
-                
-                const searchMatch = searchTerm === '' || 
+                const matchesType = typeFilter === 'all' || item.feedbackType === typeFilter;
+                const matchesOS = osFilter === 'all' || item.os === osFilter;
+                const matchesSearch = searchTerm === '' || 
                     item.name.toLowerCase().includes(searchTerm) ||
                     item.details.toLowerCase().includes(searchTerm);
 
-                return statusMatch && typeMatch && osMatch && searchMatch;
+                return matchesStatus && matchesType && matchesOS && matchesSearch;
             });
 
             renderFeedbackList();
         }
 
+        // Render feedback in two tables
+        function renderFeedbackList() {
+            const openTableBody = document.getElementById('openFeedbackTableBody');
+            const handledTableBody = document.getElementById('handledFeedbackTableBody');
+            
+            // Separate open and handled feedback
+            const openFeedback = filteredData.filter(item => !item.handled);
+            const handledFeedback = filteredData.filter(item => item.handled);
+
+            // Render open feedback
+            if (openFeedback.length === 0) {
+                openTableBody.innerHTML = '<tr><td colspan="7" class="no-data">No open feedback requests</td></tr>';
+            } else {
+                openTableBody.innerHTML = openFeedback.map(item => createTableRow(item)).join('');
+            }
+
+            // Render handled feedback
+            if (handledFeedback.length === 0) {
+                handledTableBody.innerHTML = '<tr><td colspan="7" class="no-data">No handled feedback requests</td></tr>';
+            } else {
+                handledTableBody.innerHTML = handledFeedback.map(item => createTableRow(item, true)).join('');
+            }
+        }
+
+        // Helper function to convert Google Drive URLs to direct image URLs
+        function convertToDirectImageUrl(url) {
+            if (!url || !url.includes('drive.google.com')) {
+                return url;
+            }
+            
+            // Extract file ID from Google Drive URL
+            const fileIdMatch = url.match(/\/file\/d\/([a-zA-Z0-9-_]+)/);
+            if (fileIdMatch) {
+                const fileId = fileIdMatch[1];
+                // Convert to direct image URL
+                return `https://drive.google.com/uc?export=view&id=${fileId}`;
+            }
+            
+            return url;
+        }
+
+        // Create table row
+        function createTableRow(item, isHandled = false) {
+            // Handle screenshot links - could be single URL or comma-separated
+            let screenshotLinks = [];
+            if (item.screenshotLinks && typeof item.screenshotLinks === 'string') {
+                if (item.screenshotLinks.includes(',')) {
+                    screenshotLinks = item.screenshotLinks.split(',').filter(link => link.trim());
+                } else if (item.screenshotLinks.startsWith('http')) {
+                    screenshotLinks = [item.screenshotLinks];
+                }
+            }
+
+            return `
+                <tr class="${isHandled ? 'handled-row' : ''}" onclick="openModal(${item.id})">
+                    <td class="col-timestamp">${item.timestamp}</td>
+                    <td class="col-name">${item.name}</td>
+                    <td class="col-os">${item.os}</td>
+                    <td class="col-type">${item.feedbackType}</td>
+                    <td class="col-details details-cell">${item.details}</td>
+                    <td class="col-screenshots">
+                        ${screenshotLinks.length > 0 
+                            ? screenshotLinks.map((link, index) => {
+                                const directUrl = convertToDirectImageUrl(link.trim());
+                                return `<a href="${directUrl}" target="_blank" class="screenshot-link" onclick="event.stopPropagation()">📎 ${index + 1}</a>`;
+                              }).join('')
+                            : '<span class="no-data">None</span>'
+                        }
+                    </td>
+                    <td class="col-actions" onclick="event.stopPropagation()">
+                        <button class="action-btn ${isHandled ? 'btn-pending' : 'btn-handled'}" 
+                                onclick="toggleHandled(${item.id}, ${!isHandled})">
+                            ${isHandled ? 'Mark Open' : 'Reviewed'}
+                        </button>
+                    </td>
+                </tr>
+            `;
+        }
+
+        // Toggle handled status
+        async function toggleHandled(id, handled) {
+            try {
+                console.log(`🔄 Updating handled status for item ${id} to ${handled}`);
+                
+                // Update local data immediately for better UX
+                const item = feedbackData.find(f => f.id === id);
+                if (item) {
+                    item.handled = handled;
+                    applyFilters();
+                }
+
+                // Send update to Google Sheets
+                await updateHandledStatusInSheets(id, handled);
+                
+                // Refresh data from Google Sheets to ensure consistency
+                setTimeout(() => {
+                    loadFeedbackData();
+                }, 1000);
+                
+            } catch (error) {
+                console.error('Error toggling handled status:', error);
+                // Revert local change on error
+                const item = feedbackData.find(f => f.id === id);
+                if (item) {
+                    item.handled = !handled;
+                    applyFilters();
+                }
+            }
+        }
+
+        // Update handled status in Google Sheets
+        async function updateHandledStatusInSheets(id, handled) {
+            try {
+                console.log(`🔄 Updating handled status for item ${id} to ${handled}`);
+                
+                // Use the admin-specific Google Apps Script URL (bound script)
+                const ADMIN_GOOGLE_SHEETS_URL = 'https://script.google.com/macros/s/AKfycbwGH3qlj60k_u1UdNti_gKSPR2BMA1fJyXSUKYxKUUf4LzJtY3PPkkuhpQxcEBroYyIkA/exec';
+                
+                if (ADMIN_GOOGLE_SHEETS_URL === 'YOUR_ADMIN_GOOGLE_APPS_SCRIPT_URL_HERE') {
+                    console.log('⚠️ Admin Google Apps Script URL not configured, skipping update');
+                    return;
+                }
+                
+                console.log(`📡 Sending to: ${ADMIN_GOOGLE_SHEETS_URL}`);
+                
+                // Send POST request to Google Apps Script with action=updateStatus
+                const updateData = {
+                    action: 'updateStatus',
+                    id: id,
+                    handled: handled
+                };
+
+                console.log('📤 JSON data being sent:', updateData);
+
+                const response = await fetch(ADMIN_GOOGLE_SHEETS_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(updateData),
+                    mode: 'no-cors'
+                });
+
+                console.log(`✅ Request sent for item ${id}: ${handled}`);
+                console.log('📊 Response:', response);
+                
+                console.log('ℹ️ Note: With no-cors mode, we cannot verify the response');
+                console.log('ℹ️ Status update request completed');
+                
+            } catch (error) {
+                console.error('❌ Error updating handled status:', error);
+                const item = feedbackData.find(f => f.id === id);
+                if (item) {
+                    item.handled = !handled;
+                    applyFilters();
+                    console.log('🔄 Reverted local change due to error');
+                }
+            }
+        }
+
+        // Open modal with detailed view
+        function openModal(id) {
+            const item = feedbackData.find(f => f.id === id);
+            if (!item) return;
+
+            currentModalItem = item;
+            
+            // Handle screenshot links - could be single URL or comma-separated
+            let screenshotLinks = [];
+            if (item.screenshotLinks && typeof item.screenshotLinks === 'string') {
+                if (item.screenshotLinks.includes(',')) {
+                    screenshotLinks = item.screenshotLinks.split(',').filter(link => link.trim());
+                } else if (item.screenshotLinks.startsWith('http')) {
+                    screenshotLinks = [item.screenshotLinks];
+                }
+            }
+
+            const modalBody = document.getElementById('modalBody');
+            modalBody.innerHTML = `
+                <div class="modal-field">
+                    <strong>Timestamp:</strong>
+                    <span>${item.timestamp}</span>
+                </div>
+                <div class="modal-field">
+                    <strong>Name:</strong>
+                    <span>${item.name}</span>
+                </div>
+                <div class="modal-field">
+                    <strong>Operating System:</strong>
+                    <span>${item.os}</span>
+                </div>
+                <div class="modal-field">
+                    <strong>Feedback Type:</strong>
+                    <span>${item.feedbackType}</span>
+                </div>
+                <div class="modal-field">
+                    <strong>Details:</strong>
+                    <span>${item.details}</span>
+                </div>
+                <div class="modal-field">
+                    <strong>Status:</strong>
+                    <span class="status-badge ${item.handled ? 'status-handled' : 'status-open'}">
+                        ${item.handled ? 'Handled' : 'Open'}
+                    </span>
+                </div>
+                ${screenshotLinks.length > 0 ? `
+                    <div class="modal-field">
+                        <strong>Screenshots:</strong>
+                        <div class="screenshots-grid">
+                            ${screenshotLinks.map((link, index) => {
+                                const directUrl = convertToDirectImageUrl(link.trim());
+                                return `
+                                <div class="screenshot-card">
+                                    <img src="${directUrl}" 
+                                         alt="Screenshot ${index + 1}" 
+                                         style="width: 100%; height: 200px; object-fit: cover; border-radius: 8px; margin-bottom: 10px;"
+                                         onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                    <div style="background: rgba(51, 65, 85, 0.5); height: 200px; border-radius: 8px; display: none; align-items: center; justify-content: center; margin-bottom: 10px;">
+                                        <span style="color: #94a3b8;">📎 Screenshot ${index + 1}</span>
+                                    </div>
+                                    <a href="${directUrl}" target="_blank" class="screenshot-link">View Full Size</a>
+                                </div>`;
+                            }).join('')}
+                        </div>
+                    </div>
+                ` : ''}
+            `;
+
+            const toggleBtn = document.getElementById('modalToggleHandled');
+            toggleBtn.textContent = item.handled ? 'Mark as Open' : 'Mark as Handled';
+            toggleBtn.className = `modal-btn primary ${item.handled ? 'btn-pending' : 'btn-handled'}`;
+
+            document.getElementById('feedbackModal').style.display = 'block';
+        }
+
+        // Close modal
+        function closeModal() {
+            document.getElementById('feedbackModal').style.display = 'none';
+            currentModalItem = null;
+        }
+
+        // Toggle handled status from modal
+        function toggleHandledFromModal() {
+            if (currentModalItem) {
+                toggleHandled(currentModalItem.id, !currentModalItem.handled);
+                closeModal();
+            }
+        }
+
         // Refresh data
         function refreshData() {
-            document.getElementById('feedbackList').innerHTML = '<div class="loading">Refreshing data...</div>';
+            console.log('🔄 Refreshing data...');
             loadFeedbackData();
         }
 
-        // Initialize filters
+        // Show error message
+        function showError(message) {
+            const openTableBody = document.getElementById('openFeedbackTableBody');
+            const handledTableBody = document.getElementById('handledFeedbackTableBody');
+            
+            openTableBody.innerHTML = `<tr><td colspan="7" class="error">${message}</td></tr>`;
+            handledTableBody.innerHTML = `<tr><td colspan="7" class="error">${message}</td></tr>`;
+        }
+
+        // Event listeners
         document.getElementById('statusFilter').addEventListener('change', applyFilters);
         document.getElementById('typeFilter').addEventListener('change', applyFilters);
         document.getElementById('osFilter').addEventListener('change', applyFilters);
         document.getElementById('searchInput').addEventListener('input', applyFilters);
 
-        // Note: loadFeedbackData is called after password verification
-
-        // Check if config is loaded
-        if (GOOGLE_SHEETS_URL === 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE') {
-            document.getElementById('feedbackList').innerHTML = 
-                '<div class="error">⚠️ Please configure your Google Apps Script URL in config.js</div>';
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('feedbackModal');
+            if (event.target === modal) {
+                closeModal();
+            }
         }
+
+        // Load config and show password prompt
+        console.log('Admin panel config loaded:', {
+            SLACK_CONFIG: window.SLACK_CONFIG,
+            GOOGLE_SHEETS_URL: GOOGLE_SHEETS_URL
+        });
     </script>
 </body>
 </html>

@@ -268,8 +268,8 @@ async function sendToGoogleSheets(data) {
         formData.append('os', data.os || '');
         formData.append('feedbackType', data.feedbackType || '');
         formData.append('details', data.details || '');
-        // Send file data as JSON string so Google Apps Script can process it
-        formData.append('files', JSON.stringify(data.files || []));
+        // Send uploadedFiles data (which has the correct structure with url property)
+        formData.append('files', JSON.stringify(data.uploadedFiles || []));
         formData.append('userAgent', data.userAgent || navigator.userAgent);
 
         const response = await fetch(GOOGLE_SHEETS_URL, {
