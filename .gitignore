@@ -1,5 +1,6 @@
 # Configuration files with sensitive data
 config.js
+config.prod.secret.js
 
 # Logs
 *.log
