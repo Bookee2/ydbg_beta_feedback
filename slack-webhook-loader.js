@@ -5,16 +5,15 @@
  * in the Google Sheet. This keeps the webhook URL secure and out of GitHub.
  * 
  * Setup Instructions:
- * 1. Go to https://script.google.com
- * 2. Create a new project
+ * 1. Open your Google Sheet (ID: 19sspNrLcvU68k0BYurY5RjeZRE1iHMo-6ZIYNbBXIU)
+ * 2. Go to Extensions → Apps Script
  * 3. Replace the default code with this script
- * 4. Make sure your Google Sheet has a "Secret" tab with the webhook URL in cell A1
+ * 4. Create a "Secret" tab with the webhook URL in cell A1
  * 5. Deploy as a web app with execute permissions for "Anyone"
  * 6. Copy the web app URL to use in config.prod.js
  */
 
-// Replace this with your Google Sheet ID (found in the URL)
-const SHEET_ID = '19sspNrLcvU68k0BYurY5RjeZRE1iHMo-6ZIYNbBXIU';
+// This script is bound to the Google Sheet, so we use getActiveSpreadsheet()
 
 // Sheet name for the secret tab
 const SECRET_SHEET_NAME = 'Secret';
@@ -41,8 +40,8 @@ function doGet(e) {
 
 function getSlackWebhook() {
   try {
-    // Open the spreadsheet
-    const spreadsheet = SpreadsheetApp.openById(SHEET_ID);
+    // Get the spreadsheet (bound script - use getActiveSpreadsheet)
+    const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
     
     // Get the Secret sheet
     const secretSheet = spreadsheet.getSheetByName(SECRET_SHEET_NAME);
