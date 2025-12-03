@@ -287,6 +287,9 @@ async function sendToGoogleSheets(data) {
         // This should work even with CORS restrictions
         const jsonString = JSON.stringify(payload);
         
+        console.log('Sending JSON string length:', jsonString.length);
+        console.log('First 200 chars of JSON:', jsonString.substring(0, 200));
+        
         return new Promise((resolve) => {
             const xhr = new XMLHttpRequest();
             xhr.open('POST', GOOGLE_SHEETS_URL, true);
@@ -295,7 +298,24 @@ async function sendToGoogleSheets(data) {
             xhr.onload = function() {
                 console.log('✅ Data sent to Google Sheets (XHR completed)');
                 console.log('Status:', xhr.status);
-                resolve({ success: true, message: 'Data sent successfully' });
+                console.log('Response:', xhr.responseText);
+                if (xhr.status === 200) {
+                    try {
+                        const response = JSON.parse(xhr.responseText);
+                        console.log('Parsed response:', response);
+                        if (response.success) {
+                            resolve({ success: true, message: 'Data sent successfully' });
+                        } else {
+                            console.error('App script returned error:', response);
+                            resolve({ success: false, message: response.error || 'Unknown error' });
+                        }
+                    } catch (e) {
+                        console.log('Response is not JSON:', xhr.responseText);
+                        resolve({ success: true, message: 'Data sent (response not JSON)' });
+                    }
+                } else {
+                    resolve({ success: true, message: 'Data sent (status: ' + xhr.status + ')' });
+                }
             };
             
             xhr.onerror = function() {
