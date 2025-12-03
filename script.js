@@ -282,37 +282,23 @@ async function sendToGoogleSheets(data) {
             filesStructure: payload.files.length > 0 ? Object.keys(payload.files[0]) : 'no files'
         });
         
-        // Create a hidden form and submit it - this bypasses CORS completely
-        // The form will POST the JSON data and the app script should receive it
+        // Use the EXACT same approach as admin.html which works
         const jsonString = JSON.stringify(payload);
         
-        console.log('Sending to Google Sheets via form submission');
-        console.log('Payload:', payload);
-        console.log('JSON length:', jsonString.length);
+        console.log('Sending to Google Sheets (admin.html approach):', payload);
+        console.log('JSON string:', jsonString);
         
-        // Create a temporary form element
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.action = GOOGLE_SHEETS_URL;
-        form.style.display = 'none';
+        // Exact same fetch as admin.html - this works for admin updates
+        await fetch(GOOGLE_SHEETS_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: jsonString,
+            mode: 'no-cors'
+        });
         
-        // Create a hidden textarea with the JSON data
-        // Google Apps Script should receive this in e.postData.contents
-        const textarea = document.createElement('textarea');
-        textarea.name = 'data';
-        textarea.value = jsonString;
-        form.appendChild(textarea);
-        
-        // Append form to body, submit, then remove
-        document.body.appendChild(form);
-        form.submit();
-        
-        // Remove form after a short delay
-        setTimeout(() => {
-            document.body.removeChild(form);
-        }, 100);
-        
-        console.log('✅ Form submitted to Google Sheets');
+        console.log('✅ Request sent to Google Sheets');
         return { success: true, message: 'Data sent successfully' };
 
     } catch (error) {
