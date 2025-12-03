@@ -282,23 +282,24 @@ async function sendToGoogleSheets(data) {
             filesStructure: payload.files.length > 0 ? Object.keys(payload.files[0]) : 'no files'
         });
         
-        // Since admin page works but form doesn't, try sending as URL-encoded form data
-        // This might work better with no-cors mode
-        const formBody = 'data=' + encodeURIComponent(JSON.stringify(payload));
+        // Use EXACT same approach as admin.html - character for character match
+        const jsonString = JSON.stringify(payload);
         
-        console.log('Sending payload to Google Sheets as URL-encoded form:', payload);
+        console.log('Sending to Google Sheets - exact admin.html approach');
+        console.log('Payload:', payload);
+        console.log('JSON length:', jsonString.length);
         
-        await fetch(GOOGLE_SHEETS_URL, {
+        // This exact code works for admin page
+        const response = await fetch(GOOGLE_SHEETS_URL, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
+                'Content-Type': 'application/json',
             },
-            body: formBody,
+            body: jsonString,
             mode: 'no-cors'
         });
         
-        console.log('✅ Data sent to Google Sheets as form data');
-        console.log('Note: App script may need to read from e.parameter.data instead of e.postData.contents');
+        console.log('✅ Request sent (matching admin.html exactly)');
         return { success: true, message: 'Data sent successfully' };
 
     } catch (error) {
