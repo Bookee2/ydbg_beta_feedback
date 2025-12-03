@@ -282,24 +282,37 @@ async function sendToGoogleSheets(data) {
             filesStructure: payload.files.length > 0 ? Object.keys(payload.files[0]) : 'no files'
         });
         
-        // Use EXACT same approach as admin.html - character for character match
+        // Create a hidden form and submit it - this bypasses CORS completely
+        // The form will POST the JSON data and the app script should receive it
         const jsonString = JSON.stringify(payload);
         
-        console.log('Sending to Google Sheets - exact admin.html approach');
+        console.log('Sending to Google Sheets via form submission');
         console.log('Payload:', payload);
         console.log('JSON length:', jsonString.length);
         
-        // This exact code works for admin page
-        const response = await fetch(GOOGLE_SHEETS_URL, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: jsonString,
-            mode: 'no-cors'
-        });
+        // Create a temporary form element
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = GOOGLE_SHEETS_URL;
+        form.style.display = 'none';
         
-        console.log('✅ Request sent (matching admin.html exactly)');
+        // Create a hidden textarea with the JSON data
+        // Google Apps Script should receive this in e.postData.contents
+        const textarea = document.createElement('textarea');
+        textarea.name = 'data';
+        textarea.value = jsonString;
+        form.appendChild(textarea);
+        
+        // Append form to body, submit, then remove
+        document.body.appendChild(form);
+        form.submit();
+        
+        // Remove form after a short delay
+        setTimeout(() => {
+            document.body.removeChild(form);
+        }, 100);
+        
+        console.log('✅ Form submitted to Google Sheets');
         return { success: true, message: 'Data sent successfully' };
 
     } catch (error) {
