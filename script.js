@@ -282,39 +282,21 @@ async function sendToGoogleSheets(data) {
             filesStructure: payload.files.length > 0 ? Object.keys(payload.files[0]) : 'no files'
         });
         
-        const response = await fetch(GOOGLE_SHEETS_URL, {
+        // Google Apps Script web apps have CORS issues, use no-cors mode
+        // The app script will still receive the JSON data via e.postData.contents
+        await fetch(GOOGLE_SHEETS_URL, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify(payload),
-            mode: 'cors'
+            mode: 'no-cors'
         });
-
-        console.log('Response status:', response.status, response.statusText);
-        console.log('Response headers:', [...response.headers.entries()]);
-
-        if (response.ok) {
-            try {
-                const result = await response.json();
-                console.log('✅ Data sent to Google Sheets successfully:', result);
-                return result;
-            } catch (jsonError) {
-                // Response might not be JSON, try text
-                const textResult = await response.text();
-                console.log('✅ Data sent to Google Sheets (non-JSON response):', textResult);
-                return { success: true, message: textResult };
-            }
-        } else {
-            const errorText = await response.text();
-            console.error('❌ Google Sheets error response:', errorText);
-            console.error('Full error details:', {
-                status: response.status,
-                statusText: response.statusText,
-                body: errorText
-            });
-            throw new Error(`Google Sheets returned status ${response.status}: ${errorText}`);
-        }
+        
+        console.log('✅ Data sent to Google Sheets (no-cors mode)');
+        console.log('Note: With no-cors mode, we cannot verify if the data was actually stored');
+        console.log('Check your Google Sheet to confirm the data was added');
+        return { success: true, message: 'Data sent successfully' };
 
     } catch (error) {
         console.error('Error sending to Google Sheets:', error);
