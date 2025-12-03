@@ -2,7 +2,7 @@
 // This file loads the Slack webhook URL from a secret Google Sheet tab
 window.SLACK_CONFIG = {
     webhookUrl: 'YOUR_SLACK_WEBHOOK_URL_HERE', // Will be loaded from Google Sheets
-    googleSheetsUrl: 'https://script.google.com/macros/s/AKfycbx086lKDETdRyuSSOzBRmmnR0idiEA1GGVjq-lHC9JRdvYwjbA9hA3hFaVfkaRpFl42Vw/exec'
+    googleSheetsUrl: 'https://script.google.com/macros/s/AKfycbxURnNYJSE6-cZl41PAwXV2xTzPt9goCo4FUbaQDgFj7LwDRj7nXktUYl9WjtOIPkGYPg/exec'
 };
 
 // Load Slack webhook URL from Google Sheets "Secret" tab

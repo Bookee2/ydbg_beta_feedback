@@ -9,7 +9,8 @@ function loadConfig() {
         GOOGLE_SHEETS_URL = window.SLACK_CONFIG.googleSheetsUrl || GOOGLE_SHEETS_URL;
         console.log('Configuration loaded:', {
             slack: SLACK_WEBHOOK_URL !== 'YOUR_SLACK_WEBHOOK_URL_HERE',
-            sheets: GOOGLE_SHEETS_URL !== 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE'
+            sheets: GOOGLE_SHEETS_URL !== 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE',
+            googleSheetsUrl: GOOGLE_SHEETS_URL
         });
     } else {
         console.warn('SLACK_CONFIG not found, using default URLs');
@@ -71,9 +72,8 @@ form.addEventListener('submit', async (e) => {
                 
                 uploadedFiles.push({
                     name: file.name,
-                    size: file.size,
-                    url: dataUrl,
-                    isDataUrl: true
+                    type: file.type,
+                    url: dataUrl
                 });
                 
                 fileData.push({
@@ -257,36 +257,72 @@ async function sendToGoogleSheets(data) {
                 os: data.os,
                 feedbackType: data.feedbackType,
                 details: data.details.substring(0, 50) + '...',
-                filesCount: data.files ? data.files.length : 0
+                filesCount: data.uploadedFiles ? data.uploadedFiles.length : 0
             }
         });
 
-        // Use form data format since we know this works
-        console.log('Using form data format for Google Sheets...');
-        const formData = new FormData();
-        formData.append('name', data.name || '');
-        formData.append('os', data.os || '');
-        formData.append('feedbackType', data.feedbackType || '');
-        formData.append('details', data.details || '');
-        // Send uploadedFiles data (which has the correct structure with url property)
-        formData.append('files', JSON.stringify(data.uploadedFiles || []));
-        formData.append('userAgent', data.userAgent || navigator.userAgent);
+        // Google Apps Script expects JSON format, not FormData
+        // The app script expects data.files array with url, type, and name properties
+        const payload = {
+            name: data.name || '',
+            os: data.os || '',
+            feedbackType: data.feedbackType || '',
+            details: data.details || '',
+            files: data.uploadedFiles || [], // Use uploadedFiles which has url, type, name structure
+            userAgent: data.userAgent || navigator.userAgent
+        };
 
+        console.log('Sending JSON payload to Google Sheets...');
+        console.log('Payload structure:', {
+            name: payload.name,
+            os: payload.os,
+            feedbackType: payload.feedbackType,
+            detailsLength: payload.details.length,
+            filesCount: payload.files.length,
+            filesStructure: payload.files.length > 0 ? Object.keys(payload.files[0]) : 'no files'
+        });
+        
         const response = await fetch(GOOGLE_SHEETS_URL, {
             method: 'POST',
-            body: formData,
-            mode: 'no-cors'
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload),
+            mode: 'cors'
         });
 
-        console.log('✅ Data sent to Google Sheets (no-cors mode) - cannot verify success');
-        console.log('Note: With no-cors mode, we cannot verify if the data was actually stored');
-        console.log('Check your Google Sheet to confirm the data was added');
-        
-        // Since we can't verify with no-cors, we'll assume success
-        return;
+        console.log('Response status:', response.status, response.statusText);
+        console.log('Response headers:', [...response.headers.entries()]);
+
+        if (response.ok) {
+            try {
+                const result = await response.json();
+                console.log('✅ Data sent to Google Sheets successfully:', result);
+                return result;
+            } catch (jsonError) {
+                // Response might not be JSON, try text
+                const textResult = await response.text();
+                console.log('✅ Data sent to Google Sheets (non-JSON response):', textResult);
+                return { success: true, message: textResult };
+            }
+        } else {
+            const errorText = await response.text();
+            console.error('❌ Google Sheets error response:', errorText);
+            console.error('Full error details:', {
+                status: response.status,
+                statusText: response.statusText,
+                body: errorText
+            });
+            throw new Error(`Google Sheets returned status ${response.status}: ${errorText}`);
+        }
 
     } catch (error) {
         console.error('Error sending to Google Sheets:', error);
+        console.error('Error details:', {
+            message: error.message,
+            stack: error.stack,
+            name: error.name
+        });
         throw error;
     }
 }
