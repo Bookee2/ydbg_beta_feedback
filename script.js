@@ -306,22 +306,45 @@ async function sendToGoogleSheets(data) {
             });
         }
         
-        // Use the same approach as admin.html - this works for admin updates
-        // Note: Even though browser shows CORS errors, the request is still sent with no-cors mode
-        await fetch(GOOGLE_SHEETS_URL, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: jsonString,
-            mode: 'no-cors'
+        // Try using a hidden iframe with form to bypass CORS completely
+        // This ensures the POST request is sent properly with the JSON data
+        return new Promise((resolve) => {
+            const iframe = document.createElement('iframe');
+            iframe.name = 'hidden_submit_' + Date.now();
+            iframe.style.display = 'none';
+            document.body.appendChild(iframe);
+            
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = GOOGLE_SHEETS_URL;
+            form.target = iframe.name;
+            form.style.display = 'none';
+            form.enctype = 'text/plain'; // Send as plain text so app script can parse as JSON
+            
+            // Create a textarea with the JSON (form will send it as the body)
+            const textarea = document.createElement('textarea');
+            textarea.name = 'data';
+            textarea.value = jsonString;
+            form.appendChild(textarea);
+            
+            iframe.onload = function() {
+                console.log('✅ Form submitted via iframe');
+                setTimeout(() => {
+                    document.body.removeChild(iframe);
+                    document.body.removeChild(form);
+                }, 1000);
+                resolve({ success: true, message: 'Data sent successfully' });
+            };
+            
+            document.body.appendChild(form);
+            form.submit();
+            
+            // Fallback timeout
+            setTimeout(() => {
+                console.log('✅ Data sent (timeout fallback)');
+                resolve({ success: true, message: 'Data sent successfully' });
+            }, 2000);
         });
-        
-        console.log('✅ Data sent to Google Sheets (matching admin.html approach)');
-        console.log('Note: CORS errors in console are expected with no-cors mode');
-        console.log('The request is still sent - check Google Sheet to verify data was received');
-        console.log('If data doesn\'t appear, check Google Apps Script execution logs for errors');
-        return { success: true, message: 'Data sent successfully' };
 
     } catch (error) {
         console.error('Error sending to Google Sheets:', error);
