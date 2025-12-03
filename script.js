@@ -307,7 +307,8 @@ async function sendToGoogleSheets(data) {
         }
         
         // Use the same approach as admin.html - this works for admin updates
-        const response = await fetch(GOOGLE_SHEETS_URL, {
+        // Note: Even though browser shows CORS errors, the request is still sent with no-cors mode
+        await fetch(GOOGLE_SHEETS_URL, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -317,7 +318,9 @@ async function sendToGoogleSheets(data) {
         });
         
         console.log('✅ Data sent to Google Sheets (matching admin.html approach)');
-        console.log('Note: Request sent, check Google Sheet to verify');
+        console.log('Note: CORS errors in console are expected with no-cors mode');
+        console.log('The request is still sent - check Google Sheet to verify data was received');
+        console.log('If data doesn\'t appear, check Google Apps Script execution logs for errors');
         return { success: true, message: 'Data sent successfully' };
 
     } catch (error) {
