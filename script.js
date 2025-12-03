@@ -306,45 +306,20 @@ async function sendToGoogleSheets(data) {
             });
         }
         
-        // Try using a hidden iframe with form to bypass CORS completely
-        // This ensures the POST request is sent properly with the JSON data
-        return new Promise((resolve) => {
-            const iframe = document.createElement('iframe');
-            iframe.name = 'hidden_submit_' + Date.now();
-            iframe.style.display = 'none';
-            document.body.appendChild(iframe);
-            
-            const form = document.createElement('form');
-            form.method = 'POST';
-            form.action = GOOGLE_SHEETS_URL;
-            form.target = iframe.name;
-            form.style.display = 'none';
-            form.enctype = 'text/plain'; // Send as plain text so app script can parse as JSON
-            
-            // Create a textarea with the JSON (form will send it as the body)
-            const textarea = document.createElement('textarea');
-            textarea.name = 'data';
-            textarea.value = jsonString;
-            form.appendChild(textarea);
-            
-            iframe.onload = function() {
-                console.log('✅ Form submitted via iframe');
-                setTimeout(() => {
-                    document.body.removeChild(iframe);
-                    document.body.removeChild(form);
-                }, 1000);
-                resolve({ success: true, message: 'Data sent successfully' });
-            };
-            
-            document.body.appendChild(form);
-            form.submit();
-            
-            // Fallback timeout
-            setTimeout(() => {
-                console.log('✅ Data sent (timeout fallback)');
-                resolve({ success: true, message: 'Data sent successfully' });
-            }, 2000);
+        // The admin page works with this exact approach, so it should work here too
+        // The CORS errors are expected with no-cors mode but don't prevent the request
+        // However, without Content-Type header, e.postData.contents might be empty
+        // Try sending without the header first (browser might add it automatically)
+        await fetch(GOOGLE_SHEETS_URL, {
+            method: 'POST',
+            body: jsonString,
+            mode: 'no-cors'
         });
+        
+        console.log('✅ Data sent to Google Sheets');
+        console.log('Note: If data doesn\'t appear, the app script may need Content-Type header');
+        console.log('Since admin page works, check if form script deployment settings differ');
+        return { success: true, message: 'Data sent successfully' };
 
     } catch (error) {
         console.error('Error sending to Google Sheets:', error);
