@@ -282,54 +282,26 @@ async function sendToGoogleSheets(data) {
             filesStructure: payload.files.length > 0 ? Object.keys(payload.files[0]) : 'no files'
         });
         
-        // Google Apps Script expects JSON in e.postData.contents
-        // Send minimal test payload first to verify connection works
-        const testPayload = {
-            name: payload.name || 'Test',
-            os: payload.os || 'Test',
-            feedbackType: payload.feedbackType || 'Test',
-            details: payload.details || 'Test',
-            files: [], // No files for now
-            userAgent: payload.userAgent || navigator.userAgent
-        };
+        // Use the EXACT same approach as admin.html which works
+        // Match it character for character to ensure it works
+        const jsonString = JSON.stringify(payload);
         
-        const jsonString = JSON.stringify(testPayload);
+        console.log('Sending payload to Google Sheets:', payload);
+        console.log('JSON string length:', jsonString.length);
         
-        console.log('Sending test payload to Google Sheets:', testPayload);
-        console.log('JSON string:', jsonString);
-        
-        // Use XMLHttpRequest which can send POST with proper Content-Type
-        return new Promise((resolve) => {
-            const xhr = new XMLHttpRequest();
-            xhr.open('POST', GOOGLE_SHEETS_URL, true);
-            xhr.setRequestHeader('Content-Type', 'application/json');
-            
-            xhr.onload = function() {
-                console.log('XHR onload - Status:', xhr.status);
-                console.log('XHR onload - Response:', xhr.responseText);
-                if (xhr.status === 200 || xhr.status === 0) {
-                    console.log('✅ Data sent to Google Sheets (XHR status:', xhr.status + ')');
-                    resolve({ success: true, message: 'Data sent successfully' });
-                } else {
-                    console.log('⚠️ XHR completed with status:', xhr.status);
-                    resolve({ success: true, message: 'Data sent (status: ' + xhr.status + ')' });
-                }
-            };
-            
-            xhr.onerror = function() {
-                console.warn('⚠️ XHR error occurred');
-                console.warn('XHR error details:', xhr);
-                resolve({ success: true, message: 'Data sent (may have warnings)' });
-            };
-            
-            xhr.ontimeout = function() {
-                console.warn('⚠️ XHR timeout');
-                resolve({ success: true, message: 'Data sent (timeout)' });
-            };
-            
-            console.log('Sending XHR request to:', GOOGLE_SHEETS_URL);
-            xhr.send(jsonString);
+        // Exact same fetch call as admin.html - this works for admin updates
+        const response = await fetch(GOOGLE_SHEETS_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: jsonString,
+            mode: 'no-cors'
         });
+        
+        console.log('✅ Data sent to Google Sheets (matching admin.html exactly)');
+        console.log('Note: CORS errors are expected with no-cors mode');
+        return { success: true, message: 'Data sent successfully' };
 
     } catch (error) {
         console.error('Error sending to Google Sheets:', error);
