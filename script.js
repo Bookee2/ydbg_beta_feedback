@@ -283,56 +283,29 @@ async function sendToGoogleSheets(data) {
         });
         
         // Google Apps Script expects JSON in e.postData.contents
-        // Use a hidden iframe with form submission to bypass CORS
-        // This ensures the POST request reaches the script with proper data
+        // Send as raw POST body - the request reaches the script (we see it in logs)
+        // Even though CORS blocks the response, the data should still be processed
         const jsonString = JSON.stringify(payload);
         
         console.log('Sending JSON string length:', jsonString.length);
         console.log('First 200 chars of JSON:', jsonString.substring(0, 200));
         
-        return new Promise((resolve) => {
-            // Create a hidden iframe to submit the form
-            const iframe = document.createElement('iframe');
-            iframe.name = 'hidden_iframe_' + Date.now();
-            iframe.style.display = 'none';
-            document.body.appendChild(iframe);
-            
-            // Create a form with the JSON data
-            const form = document.createElement('form');
-            form.method = 'POST';
-            form.action = GOOGLE_SHEETS_URL;
-            form.target = iframe.name;
-            form.style.display = 'none';
-            
-            // Create hidden input with JSON data
-            // Google Apps Script will receive this in e.postData.contents
-            const input = document.createElement('input');
-            input.type = 'hidden';
-            input.name = 'data';
-            input.value = jsonString;
-            form.appendChild(input);
-            
-            // Handle iframe load (when form submission completes)
-            iframe.onload = function() {
-                console.log('✅ Form submitted to Google Sheets via iframe');
-                // Clean up
-                setTimeout(() => {
-                    document.body.removeChild(iframe);
-                    document.body.removeChild(form);
-                }, 1000);
-                resolve({ success: true, message: 'Data sent successfully' });
-            };
-            
-            // Add form to body and submit
-            document.body.appendChild(form);
-            form.submit();
-            
-            // Fallback timeout in case iframe.onload doesn't fire
-            setTimeout(() => {
-                console.log('✅ Data sent to Google Sheets (timeout fallback)');
-                resolve({ success: true, message: 'Data sent successfully' });
-            }, 2000);
+        // Use fetch with no-cors - request will be sent even if we can't read response
+        // The app script should still receive and process the data
+        await fetch(GOOGLE_SHEETS_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: jsonString,
+            mode: 'no-cors',
+            cache: 'no-cache'
         });
+        
+        console.log('✅ Data sent to Google Sheets (no-cors mode)');
+        console.log('Note: CORS prevents reading response, but request was sent');
+        console.log('Check execution logs and Google Sheet to verify data was received');
+        return { success: true, message: 'Data sent successfully' };
 
     } catch (error) {
         console.error('Error sending to Google Sheets:', error);
