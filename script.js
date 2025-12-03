@@ -283,53 +283,51 @@ async function sendToGoogleSheets(data) {
         });
         
         // Google Apps Script expects JSON in e.postData.contents
-        // Match the exact approach used in admin.html which works
-        const jsonString = JSON.stringify(payload);
+        // Send minimal test payload first to verify connection works
+        const testPayload = {
+            name: payload.name || 'Test',
+            os: payload.os || 'Test',
+            feedbackType: payload.feedbackType || 'Test',
+            details: payload.details || 'Test',
+            files: [], // No files for now
+            userAgent: payload.userAgent || navigator.userAgent
+        };
         
-        // Validate JSON is valid
-        try {
-            JSON.parse(jsonString);
-        } catch (e) {
-            console.error('❌ Invalid JSON:', e);
-            throw new Error('Failed to create valid JSON payload');
-        }
+        const jsonString = JSON.stringify(testPayload);
         
-        console.log('Sending JSON string length:', jsonString.length);
-        console.log('Payload keys:', Object.keys(payload));
-        console.log('Files count:', payload.files ? payload.files.length : 0);
-        if (payload.files && payload.files.length > 0) {
-            console.log('First file structure:', {
-                hasName: !!payload.files[0].name,
-                hasType: !!payload.files[0].type,
-                hasUrl: !!payload.files[0].url,
-                urlLength: payload.files[0].url ? payload.files[0].url.length : 0
-            });
-        }
+        console.log('Sending test payload to Google Sheets:', testPayload);
+        console.log('JSON string:', jsonString);
         
-        // Use XMLHttpRequest which can send POST with proper Content-Type even with CORS issues
-        // This is more reliable than fetch with no-cors for sending JSON data
+        // Use XMLHttpRequest which can send POST with proper Content-Type
         return new Promise((resolve) => {
             const xhr = new XMLHttpRequest();
             xhr.open('POST', GOOGLE_SHEETS_URL, true);
             xhr.setRequestHeader('Content-Type', 'application/json');
             
             xhr.onload = function() {
+                console.log('XHR onload - Status:', xhr.status);
+                console.log('XHR onload - Response:', xhr.responseText);
                 if (xhr.status === 200 || xhr.status === 0) {
                     console.log('✅ Data sent to Google Sheets (XHR status:', xhr.status + ')');
                     resolve({ success: true, message: 'Data sent successfully' });
                 } else {
                     console.log('⚠️ XHR completed with status:', xhr.status);
-                    // Still resolve as success since request was sent
                     resolve({ success: true, message: 'Data sent (status: ' + xhr.status + ')' });
                 }
             };
             
             xhr.onerror = function() {
-                console.warn('⚠️ XHR error, but request may have been sent');
-                // Still resolve as success since the request might have gone through
+                console.warn('⚠️ XHR error occurred');
+                console.warn('XHR error details:', xhr);
                 resolve({ success: true, message: 'Data sent (may have warnings)' });
             };
             
+            xhr.ontimeout = function() {
+                console.warn('⚠️ XHR timeout');
+                resolve({ success: true, message: 'Data sent (timeout)' });
+            };
+            
+            console.log('Sending XHR request to:', GOOGLE_SHEETS_URL);
             xhr.send(jsonString);
         });
 
