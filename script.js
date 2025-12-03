@@ -283,23 +283,23 @@ async function sendToGoogleSheets(data) {
         });
         
         // Google Apps Script expects JSON in e.postData.contents
-        // Send raw JSON as POST body - Google Apps Script should receive it
-        // even without Content-Type header (it may default to text/plain)
+        // Match the exact approach used in admin.html which works
         const jsonString = JSON.stringify(payload);
         
         console.log('Sending JSON string length:', jsonString.length);
         console.log('First 200 chars of JSON:', jsonString.substring(0, 200));
         
-        // Send as raw POST body without headers (no-cors mode)
-        // Google Apps Script should still receive it in e.postData.contents
-        await fetch(GOOGLE_SHEETS_URL, {
+        // Use the same approach as admin.html - this works for admin updates
+        const response = await fetch(GOOGLE_SHEETS_URL, {
             method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
             body: jsonString,
-            mode: 'no-cors',
-            cache: 'no-cache'
+            mode: 'no-cors'
         });
         
-        console.log('✅ Data sent to Google Sheets (raw POST body, no-cors mode)');
+        console.log('✅ Data sent to Google Sheets (matching admin.html approach)');
         console.log('Note: Request sent, check Google Sheet to verify');
         return { success: true, message: 'Data sent successfully' };
 
