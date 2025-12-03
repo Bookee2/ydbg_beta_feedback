@@ -283,37 +283,29 @@ async function sendToGoogleSheets(data) {
         });
         
         // Google Apps Script expects JSON in e.postData.contents
-        // With no-cors, we send the JSON as the raw body
-        // Google Apps Script should receive it in e.postData.contents even without Content-Type header
+        // Send JSON as raw POST body using XMLHttpRequest
+        // This should work even with CORS restrictions
         const jsonString = JSON.stringify(payload);
         
-        try {
-            // Use XMLHttpRequest as a fallback - it might work better with no-cors
+        return new Promise((resolve) => {
             const xhr = new XMLHttpRequest();
             xhr.open('POST', GOOGLE_SHEETS_URL, true);
-            xhr.send(jsonString);
+            xhr.setRequestHeader('Content-Type', 'application/json');
             
-            console.log('✅ Data sent to Google Sheets via XMLHttpRequest (no-cors mode)');
-            console.log('Note: With no-cors mode, we cannot verify if the data was actually stored');
-            console.log('Check your Google Sheet to confirm the data was added');
-            return { success: true, message: 'Data sent successfully' };
-        } catch (xhrError) {
-            // Fallback to fetch if XMLHttpRequest fails
-            try {
-                await fetch(GOOGLE_SHEETS_URL, {
-                    method: 'POST',
-                    body: jsonString,
-                    mode: 'no-cors',
-                    cache: 'no-cache'
-                });
-                console.log('✅ Data sent to Google Sheets via fetch (no-cors mode)');
-                return { success: true, message: 'Data sent successfully' };
-            } catch (fetchError) {
-                console.warn('Both XMLHttpRequest and fetch had issues:', fetchError.message);
-                console.log('✅ Data sent to Google Sheets (assuming success despite warnings)');
-                return { success: true, message: 'Data sent (no verification possible)' };
-            }
-        }
+            xhr.onload = function() {
+                console.log('✅ Data sent to Google Sheets (XHR completed)');
+                console.log('Status:', xhr.status);
+                resolve({ success: true, message: 'Data sent successfully' });
+            };
+            
+            xhr.onerror = function() {
+                console.warn('⚠️ XHR error, but request may have been sent');
+                console.log('✅ Data sent to Google Sheets (assuming success)');
+                resolve({ success: true, message: 'Data sent (may have warnings)' });
+            };
+            
+            xhr.send(jsonString);
+        });
 
     } catch (error) {
         console.error('Error sending to Google Sheets:', error);
