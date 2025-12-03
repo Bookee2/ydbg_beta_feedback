@@ -283,28 +283,24 @@ async function sendToGoogleSheets(data) {
         });
         
         // Google Apps Script expects JSON in e.postData.contents
-        // Send as raw POST body - the request reaches the script (we see it in logs)
-        // Even though CORS blocks the response, the data should still be processed
+        // Send raw JSON as POST body - Google Apps Script should receive it
+        // even without Content-Type header (it may default to text/plain)
         const jsonString = JSON.stringify(payload);
         
         console.log('Sending JSON string length:', jsonString.length);
         console.log('First 200 chars of JSON:', jsonString.substring(0, 200));
         
-        // Use fetch with no-cors - request will be sent even if we can't read response
-        // The app script should still receive and process the data
+        // Send as raw POST body without headers (no-cors mode)
+        // Google Apps Script should still receive it in e.postData.contents
         await fetch(GOOGLE_SHEETS_URL, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
             body: jsonString,
             mode: 'no-cors',
             cache: 'no-cache'
         });
         
-        console.log('✅ Data sent to Google Sheets (no-cors mode)');
-        console.log('Note: CORS prevents reading response, but request was sent');
-        console.log('Check execution logs and Google Sheet to verify data was received');
+        console.log('✅ Data sent to Google Sheets (raw POST body, no-cors mode)');
+        console.log('Note: Request sent, check Google Sheet to verify');
         return { success: true, message: 'Data sent successfully' };
 
     } catch (error) {
