@@ -283,12 +283,10 @@ async function sendToGoogleSheets(data) {
         });
         
         // Google Apps Script web apps have CORS issues, use no-cors mode
-        // The app script will still receive the JSON data via e.postData.contents
+        // Note: With no-cors, we cannot set custom headers, but the app script
+        // will still receive the JSON data via e.postData.contents
         await fetch(GOOGLE_SHEETS_URL, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
             body: JSON.stringify(payload),
             mode: 'no-cors'
         });
