@@ -286,8 +286,25 @@ async function sendToGoogleSheets(data) {
         // Match the exact approach used in admin.html which works
         const jsonString = JSON.stringify(payload);
         
+        // Validate JSON is valid
+        try {
+            JSON.parse(jsonString);
+        } catch (e) {
+            console.error('❌ Invalid JSON:', e);
+            throw new Error('Failed to create valid JSON payload');
+        }
+        
         console.log('Sending JSON string length:', jsonString.length);
-        console.log('First 200 chars of JSON:', jsonString.substring(0, 200));
+        console.log('Payload keys:', Object.keys(payload));
+        console.log('Files count:', payload.files ? payload.files.length : 0);
+        if (payload.files && payload.files.length > 0) {
+            console.log('First file structure:', {
+                hasName: !!payload.files[0].name,
+                hasType: !!payload.files[0].type,
+                hasUrl: !!payload.files[0].url,
+                urlLength: payload.files[0].url ? payload.files[0].url.length : 0
+            });
+        }
         
         // Use the same approach as admin.html - this works for admin updates
         const response = await fetch(GOOGLE_SHEETS_URL, {
