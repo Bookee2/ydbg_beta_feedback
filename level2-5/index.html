@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YDBG App Beta Feedback (Levels 2-5)</title>
+    <link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo-container">
+                <img src="../logo.webp" alt="YDBG Logo" class="logo">
+            </div>
+            <div class="header-content">
+                <h1>YDBG App Beta Feedback</h1>
+                <p class="subtitle">Thanks for helping test the rebuilt version of our app before launch. We're looking for honest, detailed feedback — both what feels better and what doesn't yet work right. There are no wrong answers. Screenshots or examples are appreciated.</p>
+            </div>
+        </header>
+
+        <form id="feedbackForm" class="feedback-form">
+            <div class="form-group">
+                <label for="betaGroup">Beta Testing Group *</label>
+                <select id="betaGroup" name="betaGroup" required>
+                    <option value="">Select group…</option>
+                    <option value="Level 2">Level 2</option>
+                    <option value="Level 3">Level 3</option>
+                    <option value="Level 4">Level 4</option>
+                    <option value="Level 5">Level 5</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="name">Name *</label>
+                <select id="name" name="name" required disabled>
+                    <option value="">Select group first…</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="os">Operating System *</label>
+                <select id="os" name="os" required>
+                    <option value="">Select your operating system</option>
+                    <option value="iOS">iOS</option>
+                    <option value="Android">Android</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="feedbackType">Type of Feedback *</label>
+                <select id="feedbackType" name="feedbackType" required>
+                    <option value="">Select feedback type</option>
+                    <option value="Bug / Error">Bug / Error</option>
+                    <option value="UI / UX (look and feel of the app)">UI / UX (look and feel of the app)</option>
+                    <option value="Feature configuration / workflow">Feature configuration / workflow</option>
+                    <option value="Improvement suggestion">Improvement suggestion</option>
+                    <option value="New feature request">New feature request</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="details">Please tell us more: *</label>
+                <textarea id="details" name="details" rows="5" required placeholder="Please provide detailed feedback about your experience..."></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="screenshots">Pictures / Screenshots</label>
+                <input type="file" id="screenshots" name="screenshots" multiple accept="image/*">
+                <div class="file-help">You can upload multiple images (PNG, JPG, GIF). Maximum 5 files, 10MB each.</div>
+            </div>
+
+            <button type="submit" id="submitBtn" class="submit-btn">
+                <span class="btn-text">Submit Feedback</span>
+                <span class="btn-loading" style="display: none;">Submitting...</span>
+            </button>
+        </form>
+
+        <div id="successMessage" class="success-message" style="display: none;">
+            <h2>✅ Thank You!</h2>
+            <p>Your feedback has been submitted successfully. We appreciate your help in making the YDBG App better!</p>
+            <button type="button" class="submit-another-btn" onclick="submitAnother()">Submit Another Feedback</button>
+        </div>
+
+        <div id="errorMessage" class="error-message" style="display: none;">
+            <h2>Oops!</h2>
+            <p>There was an error submitting your feedback. Please try again or contact us directly.</p>
+        </div>
+    </div>
+
+    <script>
+        const timestamp = Date.now();
+        const random = Math.random();
+        document.write('<script src="config.prod.js?v=20&t=' + timestamp + '&r=' + random + '"><\/script>');
+    </script>
+    <script>
+        const scriptTimestamp = Date.now();
+        document.write('<script src="script.js?v=20&t=' + scriptTimestamp + '"><\/script>');
+    </script>
+</body>
+</html>
+
