@@ -23,8 +23,18 @@ const DRIVE_FOLDER_ID = '1aycnfz8Icr0g6CNkGL0mjoqS0eFR1F3E';
 
 function doPost(e) {
   try {
+    console.log('=== doPost called ===');
+    console.log('postData exists:', !!e.postData);
+    console.log('postData.contents exists:', !!(e.postData && e.postData.contents));
+    
+    if (!e.postData || !e.postData.contents) {
+      throw new Error('No post data received');
+    }
+    
     // Parse the incoming data
+    console.log('Parsing JSON data...');
     const data = JSON.parse(e.postData.contents);
+    console.log('Data parsed successfully. Keys:', Object.keys(data));
     
     // Handle different actions
     if (data.action === 'updateStatus') {
@@ -40,14 +50,18 @@ function doPost(e) {
       
   } catch (error) {
     // Log the error for debugging
-    console.error('Google Apps Script Error:', error);
+    console.error('=== Google Apps Script Error ===');
+    console.error('Error message:', error.message);
+    console.error('Error stack:', error.stack);
+    console.error('Error name:', error.name);
     
     // Return error response
     const errorOutput = ContentService
       .createTextOutput(JSON.stringify({
         success: false, 
         error: error.toString(),
-        message: 'Failed to process request'
+        message: 'Failed to process request',
+        details: error.message
       }))
       .setMimeType(ContentService.MimeType.JSON);
     
@@ -58,6 +72,7 @@ function doPost(e) {
 function handleFormSubmission(data) {
   try {
     // Log received data for debugging
+    console.log('=== Form Submission Started ===');
     console.log('Received data:', {
       betaGroup: data.betaGroup,
       name: data.name,
@@ -67,18 +82,41 @@ function handleFormSubmission(data) {
     });
     
     // Get the spreadsheet
+    console.log('Opening spreadsheet with ID:', SHEET_ID);
     const spreadsheet = SpreadsheetApp.openById(SHEET_ID);
+    console.log('Spreadsheet opened:', spreadsheet.getName());
     
-    // Try to get the sheet, if it doesn't exist, create it
+    // Try to get the sheet, if it doesn't exist, use the first sheet or create it
     let sheet = spreadsheet.getSheetByName(SHEET_NAME);
     
     if (!sheet) {
-      // Create the sheet with headers including Beta Testing Group
-      sheet = spreadsheet.insertSheet(SHEET_NAME);
-      sheet.getRange(1, 1, 1, 9).setValues([
-        ['Timestamp', 'Beta Testing Group', 'Name', 'Operating System', 'Feedback Type', 'Details', 'Screenshot Links', 'User Agent', 'Handled']
-      ]);
-      sheet.getRange(1, 1, 1, 9).setFontWeight('bold');
+      console.log('Sheet "' + SHEET_NAME + '" not found, checking for existing sheets...');
+      // Try to use the first sheet if it exists
+      const sheets = spreadsheet.getSheets();
+      if (sheets.length > 0) {
+        sheet = sheets[0];
+        console.log('Using first sheet:', sheet.getName());
+        
+        // Check if headers exist, if not add them
+        const headerRow = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+        if (headerRow.length < 2 || headerRow[0] !== 'Timestamp') {
+          console.log('Adding headers to existing sheet...');
+          sheet.getRange(1, 1, 1, 9).setValues([
+            ['Timestamp', 'Beta Testing Group', 'Name', 'Operating System', 'Feedback Type', 'Details', 'Screenshot Links', 'User Agent', 'Handled']
+          ]);
+          sheet.getRange(1, 1, 1, 9).setFontWeight('bold');
+        }
+      } else {
+        // Create the sheet with headers including Beta Testing Group
+        console.log('Creating new sheet:', SHEET_NAME);
+        sheet = spreadsheet.insertSheet(SHEET_NAME);
+        sheet.getRange(1, 1, 1, 9).setValues([
+          ['Timestamp', 'Beta Testing Group', 'Name', 'Operating System', 'Feedback Type', 'Details', 'Screenshot Links', 'User Agent', 'Handled']
+        ]);
+        sheet.getRange(1, 1, 1, 9).setFontWeight('bold');
+      }
+    } else {
+      console.log('Found sheet:', sheet.getName());
     }
     
     // Handle file uploads to Google Drive folder
@@ -131,9 +169,14 @@ function handleFormSubmission(data) {
     // Log the row data before appending for debugging
     console.log('Row data to append:', rowData);
     console.log('Beta Group value:', betaGroup);
+    console.log('Sheet name:', sheet.getName());
+    console.log('Current row count:', sheet.getLastRow());
     
     // Add the new row to the sheet
     sheet.appendRow(rowData);
+    
+    console.log('Row appended successfully. New row count:', sheet.getLastRow());
+    console.log('=== Form Submission Completed Successfully ===');
     
     // Return success response
     const output = ContentService
@@ -143,8 +186,22 @@ function handleFormSubmission(data) {
     return output;
       
   } catch (error) {
-    console.error('Form submission error:', error);
-    throw error;
+    console.error('=== Form submission error ===');
+    console.error('Error message:', error.message);
+    console.error('Error stack:', error.stack);
+    console.error('Error name:', error.name);
+    
+    // Return error response instead of throwing
+    const errorOutput = ContentService
+      .createTextOutput(JSON.stringify({
+        success: false,
+        error: error.toString(),
+        message: 'Failed to store feedback',
+        details: error.message
+      }))
+      .setMimeType(ContentService.MimeType.JSON);
+    
+    return errorOutput;
   }
 }
 
