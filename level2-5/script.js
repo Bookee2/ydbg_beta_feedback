@@ -5,7 +5,25 @@ let GOOGLE_SHEETS_URL = 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE';
 // Beta Testing Group roster - Update with actual names for each level
 const BETA_TESTER_ROSTER = {
     "Level 2": [
-        // TODO: Add Level 2 tester names here
+        "Craig Williams",
+        "Jim Namnoum",
+        "Shaka Singleton",
+        "Christy Robinson",
+        "Tracey Knight",
+        "Rick Zienowicz",
+        "Lucas Jamison",
+        "Tristian Adeogba",
+        "Joel Pitney",
+        "Andrew Liazos",
+        "Brenda Escobar Plaugher",
+        "Kolin Simon",
+        "Corbin Cook",
+        "Kris Brown",
+        "Mike Gleaton",
+        "Melissa Hwang",
+        "Jasmine Bey",
+        "Jerome Hambrick",
+        "Corey Washington"
     ],
     "Level 3": [
         // TODO: Add Level 3 tester names here
