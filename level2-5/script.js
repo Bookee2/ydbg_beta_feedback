@@ -22,6 +22,7 @@ const BETA_TESTER_ROSTER = {
         "Mike Gleaton",
         "Melissa Hwang",
         "Jasmine Bey",
+        "Fred Spring",
         "Jerome Hambrick",
         "Corey Washington"
     ],
