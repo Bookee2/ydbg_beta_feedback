@@ -545,13 +545,13 @@ async function sendFilesToSlack(files) {
             console.log(`Processing file: ${file.name}`, file);
             
             const fileMessage = {
-                text: `📎 Screenshot: ${file.name}`,
+                text: `📎 File: ${file.name}`,
                 blocks: [
                     {
                         type: "section",
                         text: {
                             type: "mrkdwn",
-                            text: `📎 *Screenshot:* ${file.name} (${(file.size / 1024).toFixed(1)} KB)`
+                            text: `📎 *File:* ${file.name} (${(file.size / 1024).toFixed(1)} KB)`
                         }
                     },
                     {
@@ -638,7 +638,7 @@ const fileInput = document.getElementById('screenshots');
 fileInput.addEventListener('change', (e) => {
     const files = Array.from(e.target.files);
     const maxFiles = 5;
-    const maxSize = 10 * 1024 * 1024; // 10MB per file
+    const maxSize = 30 * 1024 * 1024; // 30MB per file
     
     // Validate file count
     if (files.length > maxFiles) {
@@ -650,17 +650,35 @@ fileInput.addEventListener('change', (e) => {
     // Validate file sizes
     const oversizedFiles = files.filter(file => file.size > maxSize);
     if (oversizedFiles.length > 0) {
-        alert(`Some files are too large. Please keep files under 10MB each.`);
+        const oversizedNames = oversizedFiles.map(f => f.name).join(', ');
+        alert(`Some files are too large. Please keep files under 30MB each.\n\nOversized files: ${oversizedNames}`);
         e.target.value = '';
         return;
     }
     
-    // Show file count
+    // Validate file types (images or videos)
+    const allowedTypes = ['image/', 'video/'];
+    const invalidFiles = files.filter(file => {
+        return !allowedTypes.some(type => file.type.startsWith(type));
+    });
+    if (invalidFiles.length > 0) {
+        const invalidNames = invalidFiles.map(f => f.name).join(', ');
+        alert(`Some files are not supported. Please upload only images or videos.\n\nInvalid files: ${invalidNames}`);
+        e.target.value = '';
+        return;
+    }
+    
+    // Show file count and types
     const fileHelp = document.querySelector('.file-help');
     if (files.length > 0) {
-        fileHelp.textContent = `${files.length} file(s) selected`;
+        const imageCount = files.filter(f => f.type.startsWith('image/')).length;
+        const videoCount = files.filter(f => f.type.startsWith('video/')).length;
+        let typeInfo = [];
+        if (imageCount > 0) typeInfo.push(`${imageCount} image${imageCount > 1 ? 's' : ''}`);
+        if (videoCount > 0) typeInfo.push(`${videoCount} video${videoCount > 1 ? 's' : ''}`);
+        fileHelp.textContent = `${files.length} file(s) selected (${typeInfo.join(', ')})`;
     } else {
-        fileHelp.textContent = 'You can upload multiple images (PNG, JPG, GIF)';
+        fileHelp.textContent = 'You can upload multiple images (PNG, JPG, GIF) or videos (MP4, MOV, AVI). Maximum 5 files, 30MB each.';
     }
 });
 
