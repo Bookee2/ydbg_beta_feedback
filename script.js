@@ -20,6 +20,54 @@ function loadConfig() {
 // Load config immediately
 loadConfig();
 
+// Cookie utility functions
+function setCookie(name, value, days = 365) {
+    const date = new Date();
+    date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+    const expires = "expires=" + date.toUTCString();
+    document.cookie = name + "=" + encodeURIComponent(value) + ";" + expires + ";path=/";
+}
+
+function getCookie(name) {
+    const nameEQ = name + "=";
+    const ca = document.cookie.split(';');
+    for (let i = 0; i < ca.length; i++) {
+        let c = ca[i];
+        while (c.charAt(0) === ' ') c = c.substring(1, c.length);
+        if (c.indexOf(nameEQ) === 0) return decodeURIComponent(c.substring(nameEQ.length, c.length));
+    }
+    return null;
+}
+
+function deleteCookie(name) {
+    document.cookie = name + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+}
+
+// Save form preferences to cookies
+function saveFormPreferences() {
+    const name = document.getElementById('name').value;
+    const os = document.getElementById('os').value;
+    
+    if (name) setCookie('feedback_name', name);
+    if (os) setCookie('feedback_os', os);
+}
+
+// Load form preferences from cookies
+function loadFormPreferences() {
+    const savedName = getCookie('feedback_name');
+    const savedOS = getCookie('feedback_os');
+    
+    if (savedName) {
+        const nameSelect = document.getElementById('name');
+        nameSelect.value = savedName;
+    }
+    
+    if (savedOS) {
+        const osSelect = document.getElementById('os');
+        osSelect.value = savedOS;
+    }
+}
+
 // DOM elements
 const form = document.getElementById('feedbackForm');
 const submitBtn = document.getElementById('submitBtn');
@@ -108,6 +156,8 @@ form.addEventListener('submit', async (e) => {
         const sheetsSuccess = results[1].status === 'fulfilled';
         
         if (slackSuccess || sheetsSuccess) {
+            // Save form preferences to cookies
+            saveFormPreferences();
             // Show success message
             showSuccess();
         } else {
@@ -601,6 +651,18 @@ fileInput.addEventListener('change', (e) => {
         fileHelp.textContent = 'You can upload multiple images (PNG, JPG, GIF) or videos (MP4, MOV, AVI). Maximum 5 files, 30MB each.';
     }
 });
+
+// Load saved preferences when page loads
+document.addEventListener('DOMContentLoaded', () => {
+    loadFormPreferences();
+});
+
+// Also try loading immediately in case DOMContentLoaded already fired
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', loadFormPreferences);
+} else {
+    loadFormPreferences();
+}
 
 // Add some visual feedback for form interactions
 document.querySelectorAll('select, textarea').forEach(element => {

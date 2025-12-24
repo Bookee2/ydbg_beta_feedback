@@ -55,6 +55,86 @@ function loadConfig() {
 // Load config immediately
 loadConfig();
 
+// Cookie utility functions
+function setCookie(name, value, days = 365) {
+    const date = new Date();
+    date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+    const expires = "expires=" + date.toUTCString();
+    document.cookie = name + "=" + encodeURIComponent(value) + ";" + expires + ";path=/";
+}
+
+function getCookie(name) {
+    const nameEQ = name + "=";
+    const ca = document.cookie.split(';');
+    for (let i = 0; i < ca.length; i++) {
+        let c = ca[i];
+        while (c.charAt(0) === ' ') c = c.substring(1, c.length);
+        if (c.indexOf(nameEQ) === 0) return decodeURIComponent(c.substring(nameEQ.length, c.length));
+    }
+    return null;
+}
+
+function deleteCookie(name) {
+    document.cookie = name + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+}
+
+// Save form preferences to cookies
+function saveFormPreferences() {
+    const betaGroup = document.getElementById('betaGroup').value;
+    const name = document.getElementById('name').value;
+    const os = document.getElementById('os').value;
+    
+    if (betaGroup) setCookie('feedback_betagroup', betaGroup);
+    if (name) setCookie('feedback_name', name);
+    if (os) setCookie('feedback_os', os);
+}
+
+// Load form preferences from cookies
+function loadFormPreferences() {
+    const savedBetaGroup = getCookie('feedback_betagroup');
+    const savedName = getCookie('feedback_name');
+    const savedOS = getCookie('feedback_os');
+    
+    // Load betaGroup first, then trigger change event to populate name dropdown
+    if (savedBetaGroup) {
+        const betaGroupSelect = document.getElementById('betaGroup');
+        betaGroupSelect.value = savedBetaGroup;
+        
+        // Trigger change event to populate name dropdown
+        const changeEvent = new Event('change', { bubbles: true });
+        betaGroupSelect.dispatchEvent(changeEvent);
+        
+        // Wait a moment for the name dropdown to populate, then set the name
+        setTimeout(() => {
+            if (savedName) {
+                const nameSelect = document.getElementById('name');
+                nameSelect.value = savedName;
+            }
+        }, 100);
+    } else if (savedName) {
+        // If we have a saved name but no betaGroup, try to find which group it belongs to
+        for (const [group, names] of Object.entries(BETA_TESTER_ROSTER)) {
+            if (names.includes(savedName)) {
+                const betaGroupSelect = document.getElementById('betaGroup');
+                betaGroupSelect.value = group;
+                const changeEvent = new Event('change', { bubbles: true });
+                betaGroupSelect.dispatchEvent(changeEvent);
+                setTimeout(() => {
+                    const nameSelect = document.getElementById('name');
+                    nameSelect.value = savedName;
+                }, 100);
+                break;
+            }
+        }
+    }
+    
+    // Load OS
+    if (savedOS) {
+        const osSelect = document.getElementById('os');
+        osSelect.value = savedOS;
+    }
+}
+
 // DOM elements
 const form = document.getElementById('feedbackForm');
 const submitBtn = document.getElementById('submitBtn');
@@ -177,6 +257,8 @@ form.addEventListener('submit', async (e) => {
         const sheetsSuccess = results[1].status === 'fulfilled';
         
         if (slackSuccess || sheetsSuccess) {
+            // Save form preferences to cookies
+            saveFormPreferences();
             // Show success message
             showSuccess();
         } else {
@@ -682,6 +764,19 @@ fileInput.addEventListener('change', (e) => {
         fileHelp.textContent = 'You can upload multiple images (PNG, JPG, GIF) or videos (MP4, MOV, AVI). Maximum 5 files, 30MB each.';
     }
 });
+
+// Load saved preferences when page loads
+document.addEventListener('DOMContentLoaded', () => {
+    loadFormPreferences();
+});
+
+// Also try loading immediately in case DOMContentLoaded already fired
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', loadFormPreferences);
+} else {
+    // Small delay to ensure betaGroup change handler is set up
+    setTimeout(loadFormPreferences, 50);
+}
 
 // Add some visual feedback for form interactions
 document.querySelectorAll('select, textarea').forEach(element => {
