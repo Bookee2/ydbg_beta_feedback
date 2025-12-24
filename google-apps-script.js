@@ -20,6 +20,9 @@ const SHEET_ID = '19sspNrLcvU68k0BYurY5RjedZRE1iHMo-6ZIYNbBXIU';
 // Sheet name (you can change this if needed)
 const SHEET_NAME = 'YDBG Beta Feedback';
 
+// Google Drive folder ID for screenshots (Level 1)
+const DRIVE_FOLDER_ID = '';
+
 function doPost(e) {
   try {
     // Parse the incoming data
@@ -82,8 +85,16 @@ function handleFormSubmission(data) {
           const base64Data = file.url.split(',')[1];
           const blob = Utilities.newBlob(Utilities.base64Decode(base64Data), file.type, file.name);
           
-          // Upload to Google Drive
-          const driveFile = DriveApp.createFile(blob);
+          // Upload to Google Drive folder
+          let driveFile;
+          if (DRIVE_FOLDER_ID) {
+            // Upload to specific folder
+            const folder = DriveApp.getFolderById(DRIVE_FOLDER_ID);
+            driveFile = folder.createFile(blob);
+          } else {
+            // Fallback to root if folder ID not set
+            driveFile = DriveApp.createFile(blob);
+          }
           driveFile.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
           
           // Get shareable link
